@@ -58,28 +58,48 @@ export default function Login() {
 
       // Sync Auth with Firestore & Auto-Admin if not in DB
       const uid = firebaseUser.uid;
-      let userDocRef = doc(db, 'users', uid);
-      let userSnap = await getDoc(userDocRef);
+      const userEmail = firebaseUser.email || email;
 
       let userData: any = null;
+
+      // 1. Check by UID in users
+      let userDocRef = doc(db, 'users', uid);
+      let userSnap = await getDoc(userDocRef);
       if (userSnap.exists()) {
         userData = userSnap.data();
       } else {
+        // 2. Check by UID in students
         const studentDocRef = doc(db, 'students', uid);
         const studentSnap = await getDoc(studentDocRef);
         if (studentSnap.exists()) {
           userData = studentSnap.data();
         } else {
-          // Auto create as ADMIN if user exists in Authentication but not in Database
-          userData = {
-            id: uid,
-            email: firebaseUser.email || email,
-            username: (firebaseUser.email || email).split('@')[0],
-            fullName: firebaseUser.displayName || 'Quản trị viên (Auto Admin)',
-            role: 'ADMIN',
-            createdAt: new Date().toISOString(),
-          };
-          await setDoc(userDocRef, userData);
+          // 3. Query users collection by email
+          const qUsers = query(collection(db, 'users'), where('email', '==', userEmail));
+          const snapUsers = await getDocs(qUsers);
+          if (!snapUsers.empty) {
+            userData = snapUsers.docs[0].data();
+            await setDoc(doc(db, 'users', uid), { ...userData, id: uid });
+          } else {
+            // 4. Query students collection by email
+            const qStudents = query(collection(db, 'students'), where('email', '==', userEmail));
+            const snapStudents = await getDocs(qStudents);
+            if (!snapStudents.empty) {
+              userData = snapStudents.docs[0].data();
+              await setDoc(doc(db, 'students', uid), { ...userData, id: uid });
+            } else {
+              // 5. Auto create as ADMIN if not found anywhere
+              userData = {
+                id: uid,
+                email: userEmail,
+                username: userEmail.split('@')[0],
+                fullName: firebaseUser.displayName || 'Quản trị viên (Auto Admin)',
+                role: 'ADMIN',
+                createdAt: new Date().toISOString(),
+              };
+              await setDoc(doc(db, 'users', uid), userData);
+            }
+          }
         }
       }
 

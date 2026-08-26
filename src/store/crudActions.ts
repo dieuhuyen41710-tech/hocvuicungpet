@@ -8,24 +8,27 @@ export const createCrudActions = (set: any) => ({
   addUser: async (user: any) => {
     try {
       const col = user.role === "STUDENT" ? "students" : "users";
+      let finalUser = { ...user };
 
       // Create in Firebase Auth using secondary app so login works immediately without logging out current admin
       try {
         const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp_" + Date.now());
         const secondaryAuth = getAuth(secondaryApp);
         const pass = user.password && user.password.length >= 6 ? user.password : (user.username ? user.username + "123" : "123456");
-        await createUserWithEmailAndPassword(secondaryAuth, user.email, pass);
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, user.email, pass);
+        const authUid = userCredential.user.uid;
         await signOut(secondaryAuth);
         await deleteApp(secondaryApp);
+        finalUser.id = authUid;
       } catch (authErr: any) {
         console.warn("Firebase Auth creation info (may already exist):", authErr.message);
       }
 
-      await setDoc(doc(db, col, user.id), user);
+      await setDoc(doc(db, col, finalUser.id), finalUser);
       set((state: any) => {
         if (user.role === "STUDENT")
-          return { students: [...state.students, user] };
-        return { users: [...state.users, user] };
+          return { students: [...state.students, finalUser] };
+        return { users: [...state.users, finalUser] };
       });
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'users/students');
