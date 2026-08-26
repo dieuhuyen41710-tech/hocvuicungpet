@@ -1,0 +1,8 @@
+{
+  "name": "Vương Quốc Pet Tri Thức",
+  "description": "Web app giáo dục môn Toán cấp THCS với Pet đồng hành, biến việc học thành trò chơi khám phá.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,115 @@
+import React, { useState } from 'react';
+import { Gamepad2, Trophy, Star, Shield, Zap, X } from 'lucide-react';
+import { useAppStore } from '../../store/useAppStore';
+import { getEmbedUrl } from '../../utils/embed';
+
+export default function MiniGame() {
+  const { miniGames } = useAppStore();
+  const [activeGameUrl, setActiveGameUrl] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [score, setScore] = useState(0);
+
+  const startGame = () => {
+    setIsPlaying(true);
+    setScore(0);
+    // Dummy game logic
+    const interval = setInterval(() => {
+      setScore(s => s + Math.floor(Math.random() * 10) + 1);
+    }, 1000);
+    setTimeout(() => {
+      clearInterval(interval);
+      setIsPlaying(false);
+      alert('Bạn đã đạt được ' + score + ' điểm!');
+    }, 10000);
+  };
+
+  return (
+    <div className="space-y-6 max-w-4xl mx-auto w-full px-2">
+      <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border-4 border-[#DBEAFE] flex flex-col items-center text-center">
+        <div className="w-24 h-24 bg-[#EFF6FF] rounded-full flex items-center justify-center mb-4 border-4 border-[#3B82F6] shadow-inner">
+          <Gamepad2 size={48} className="text-[#3B82F6]" />
+        </div>
+        <h1 className="text-3xl font-black text-[#1E3A8A] mb-2">Phòng Game</h1>
+        <p className="text-gray-500 font-medium max-w-lg mb-8">
+          Giải trí một chút sau giờ học căng thẳng nhé! Các minigame giúp bạn luyện phản xạ và nhận thêm xu.
+        </p>
+
+        
+        {activeGameUrl && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-5xl h-[80vh] bg-white rounded-[32px] overflow-hidden flex flex-col shadow-2xl border-4 border-[#3B82F6] relative animate-in fade-in zoom-in duration-300">
+              <div className="bg-[#EFF6FF] p-4 flex justify-between items-center border-b-4 border-[#DBEAFE]">
+                <h3 className="text-xl font-black text-[#1E3A8A] flex items-center gap-2">
+                  <Gamepad2 size={24} className="text-[#3B82F6]" /> Đang chơi Game
+                </h3>
+                <button 
+                  onClick={() => setActiveGameUrl(null)}
+                  className="w-10 h-10 bg-red-100 hover:bg-red-500 text-red-500 hover:text-white rounded-xl flex items-center justify-center transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="flex-1 w-full relative bg-black">
+                <iframe src={getEmbedUrl(activeGameUrl)} className="w-full h-full border-0 absolute inset-0" allow="autoplay; fullscreen"></iframe>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+          {(miniGames || []).map(game => (
+            <div key={game.id} className="bg-white rounded-[24px] border-4 border-[#E0F2FE] hover:border-[#3B82F6] transition-colors group cursor-pointer text-left shadow-sm flex flex-col overflow-hidden">
+              {game.thumbnail ? (
+                <div className="w-full h-44 relative bg-gray-100 overflow-hidden border-b-4 border-[#E0F2FE]">
+                  <img src={game.thumbnail} alt={game.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                </div>
+              ) : (
+                <div className="w-full h-44 bg-[#EFF6FF] text-[#3B82F6] flex items-center justify-center border-b-4 border-[#E0F2FE]">
+                  <Gamepad2 size={48} />
+                </div>
+              )}
+              <div className="p-6 flex flex-col flex-1">
+                <h3 className="text-xl font-black text-[#1E3A8A] mb-2">{game.title}</h3>
+                <p className="text-sm text-[#64748B] font-medium mb-4 line-clamp-2 flex-1">{game.description}</p>
+                <button 
+                  onClick={() => setActiveGameUrl(game.url)}
+                  className="w-full py-3 bg-[#3B82F6] text-white font-black rounded-xl hover:bg-[#2563EB] transition-colors"
+                >
+                  CHƠI NGAY
+                </button>
+              </div>
+            </div>
+          ))};
+
+          <div className="bg-gray-50 p-6 rounded-[24px] border-4 border-gray-200 hover:border-[#FCD34D] transition-colors group cursor-pointer text-left">
+            <div className="w-16 h-16 bg-[#FEF3C7] text-[#D97706] rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-sm">
+              <Zap size={32} />
+            </div>
+            <h3 className="text-xl font-black text-gray-800 mb-2">Đập Chuột Tri Thức</h3>
+            <p className="text-sm text-gray-500 font-medium mb-4">Luyện phản xạ tay mắt cực nhanh. Đập trúng chuột ôm sách để được điểm!</p>
+            <button 
+              onClick={startGame}
+              disabled={isPlaying}
+              className="w-full py-3 bg-[#3B82F6] text-white font-black rounded-xl hover:bg-[#2563EB] disabled:bg-gray-400 transition-colors"
+            >
+              {isPlaying ? `Đang chơi... (${score})` : 'CHƠI NGAY'}
+            </button>
+          </div>
+
+          <div className="bg-gray-50 p-6 rounded-[24px] border-4 border-gray-200 hover:border-[#A7F3D0] transition-colors group cursor-pointer text-left">
+            <div className="w-16 h-16 bg-[#ECFDF5] text-[#059669] rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-sm">
+              <Shield size={32} />
+            </div>
+            <h3 className="text-xl font-black text-gray-800 mb-2">Bảo Vệ Hành Tinh</h3>
+            <p className="text-sm text-gray-500 font-medium mb-4">Bắn hạ các thiên thạch mang đáp án sai để bảo vệ hành tinh xanh.</p>
+            <button 
+              className="w-full py-3 bg-gray-300 text-gray-500 font-black rounded-xl cursor-not-allowed"
+            >
+              SẮP RA MẮT
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

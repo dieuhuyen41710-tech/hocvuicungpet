@@ -1,0 +1,68 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Admin or Teacher user account",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "username": { "type": "string", "maxLength": 128 },
+        "fullName": { "type": "string", "maxLength": 256 },
+        "role": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "username", "role"]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "Student user account",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "username": { "type": "string", "maxLength": 128 },
+        "fullName": { "type": "string", "maxLength": 256 },
+        "role": { "type": "string", "maxLength": 64 },
+        "class": { "type": "string", "maxLength": 64 },
+        "points": { "type": "number" },
+        "xp": { "type": "number" }
+      },
+      "required": ["id", "username", "role"]
+    },
+    "SystemSettings": {
+      "title": "SystemSettings",
+      "description": "Global settings",
+      "type": "object",
+      "properties": {
+        "schoolName": { "type": "string", "maxLength": 256 }
+      }
+    },
+    "MiniGame": {
+      "title": "MiniGame",
+      "description": "Mini game item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 256 },
+        "url": { "type": "string", "maxLength": 1024 }
+      },
+      "required": ["id", "title"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Admin/Teacher users"
+    },
+    "/students/{studentId}": {
+      "schema": { "$ref": "#/entities/Student" },
+      "description": "Students"
+    },
+    "/settings/config": {
+      "schema": { "$ref": "#/entities/SystemSettings" },
+      "description": "System settings document"
+    },
+    "/miniGames/{gameId}": {
+      "schema": { "$ref": "#/entities/MiniGame" },
+      "description": "Mini games collection"
+    }
+  }
+}
