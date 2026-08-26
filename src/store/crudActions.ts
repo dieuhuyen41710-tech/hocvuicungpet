@@ -1,10 +1,26 @@
 import { doc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
+import { initializeApp, deleteApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import firebaseConfig from '../../firebase-applet-config.json';
 
 export const createCrudActions = (set: any) => ({
   addUser: async (user: any) => {
     try {
       const col = user.role === "STUDENT" ? "students" : "users";
+
+      // Create in Firebase Auth using secondary app so login works immediately without logging out current admin
+      try {
+        const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp_" + Date.now());
+        const secondaryAuth = getAuth(secondaryApp);
+        const pass = user.password && user.password.length >= 6 ? user.password : (user.username ? user.username + "123" : "123456");
+        await createUserWithEmailAndPassword(secondaryAuth, user.email, pass);
+        await signOut(secondaryAuth);
+        await deleteApp(secondaryApp);
+      } catch (authErr: any) {
+        console.warn("Firebase Auth creation info (may already exist):", authErr.message);
+      }
+
       await setDoc(doc(db, col, user.id), user);
       set((state: any) => {
         if (user.role === "STUDENT")
