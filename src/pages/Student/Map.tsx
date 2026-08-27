@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router';
 import { useAppStore } from '../../store/useAppStore';
 import { MapNode, Lesson } from '../../types';
 import { Map as MapIcon, Lock, CheckCircle2, PlayCircle, Star, Trophy, ArrowRight, ArrowLeft } from 'lucide-react';
+import bunnyImg from '../../assets/images/pixar_bunny_avatar_1787838459749.jpg';
+import dragonImg from '../../assets/images/pixar_dragon_avatar_178783843114.jpg'; // or mock
+import dogImg from '../../assets/images/pixar_dog_avatar_1787838495530.jpg';
 
 export default function StudentMap() {
   const { subjects, mapNodes, lessons, completedLessons, currentUser } = useAppStore();
@@ -16,8 +19,9 @@ export default function StudentMap() {
   
   // Filter subjects by selected grade
   const filteredSubjects = subjects.filter(s => {
-    const extractedGrade = s.grade || s.name.match(/\d+/)?.[0];
-    return extractedGrade === selectedGrade || !extractedGrade;
+    if (!s.grade || s.grade.includes('Tất cả') || s.grade === 'Tất cả khối') return true;
+    const subGradeNum = s.grade.replace(/\D/g, '');
+    return subGradeNum === selectedGrade || s.grade === selectedGrade || !subGradeNum;
   }); // fallback to all if no grade mapped
 
   // Ensure activeSubject is valid for the current grade
@@ -36,7 +40,7 @@ export default function StudentMap() {
   const subjectNodes = activeSubject ? mapNodes.filter(n => n.subjectId === activeSubject.id).sort((a, b) => a.order - b.order) : [];
 
   const getLessonsForNode = (nodeId: string) => {
-    return lessons.filter(l => l.mapNodeId === nodeId && (l.status === 'PUBLISHED' || l.status === 'APPROVED')).sort((a, b) => a.order - b.order);
+    return lessons.filter(l => l.mapNodeId === nodeId).sort((a, b) => (a.order || 0) - (b.order || 0));
   };
 
   return (
@@ -44,12 +48,15 @@ export default function StudentMap() {
       
       {!activeMapNode ? (
         <>
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 rounded-[32px] shadow-xl border-4 border-[#DBEAFE]">
-            <h1 className="text-2xl font-black text-[#1E3A8A] flex items-center gap-3">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 rounded-[32px] shadow-xl border-4 border-[#3B82F6] relative overflow-visible">
+            <div className="absolute -top-6 -right-4 w-20 h-20 bg-white rounded-full p-1 shadow-lg border-4 border-[#3B82F6] transform rotate-12 hover:scale-110 transition-transform z-20 flex items-center justify-center overflow-hidden">
+              <img src={bunnyImg} alt="Cute Bunny" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            </div>
+            <h1 className="text-2xl font-black text-[#1E3A8A] flex items-center gap-3 pr-16">
                <span className="text-3xl">🗺️</span> Bản đồ học tập
             </h1>
             
-            <div className="flex gap-4 w-full md:w-auto">
+            <div className="flex gap-4 w-full md:w-auto relative z-10">
               <div className="flex-1 md:w-32">
                 <label className="block text-xs font-black text-[#64748B] uppercase mb-1">Khối lớp</label>
                 <select 

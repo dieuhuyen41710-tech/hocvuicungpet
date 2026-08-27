@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useAppStore } from "../store/useAppStore";
 import { Student } from "../types";
 import PetAvatar from "./PetAvatar";
+import { getPetImage } from "../lib/petUtils";
 
 import {
   Utensils,
@@ -27,6 +28,8 @@ export default function FloatingPet({ onOpenAI }: { onOpenAI?: () => void }) {
 
   const petInfo = pets.find((p) => p.id === currentUser.petId);
   if (!petInfo) return null;
+
+  const petImageUrl = getPetImage(petInfo, currentUser.petLevel, settings.globalEvolutions);
 
   // Helper messages logic
   const getPetMessages = () => {
@@ -150,7 +153,7 @@ export default function FloatingPet({ onOpenAI }: { onOpenAI?: () => void }) {
         }}
         className={`w-full h-full bg-white rounded-full shadow-2xl border-4 flex items-center justify-center overflow-hidden hover:scale-110 transition-transform ${isOpen ? "border-[#3B82F6] shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "border-[#FDE68A]"}`}
       >
-        <PetAvatar src={petInfo.baseImageUrl} className="w-full h-full text-4xl md:text-6xl animate-pulse" imgClassName="w-full h-full object-cover" />
+        <PetAvatar src={petImageUrl} className="w-full h-full text-4xl md:text-6xl animate-pulse" imgClassName="w-full h-full object-cover" />
       </button>
     </motion.div>
   );

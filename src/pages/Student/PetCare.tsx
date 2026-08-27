@@ -4,10 +4,12 @@ import { Student } from '../../types';
 import { mockFoods } from '../../data/mockData';
 import { Star, Smile, Zap, Heart, Utensils, Gamepad2, Info } from 'lucide-react';
 import PetAvatar from '../../components/PetAvatar';
+import { getPetImage } from '../../lib/petUtils';
 
 export default function PetCare() {
   const currentUser = useAppStore((state) => state.currentUser) as Student;
   const pets = useAppStore((state) => state.pets);
+  const settings = useAppStore((state) => state.settings);
   const feedPet = useAppStore((state) => state.feedPet);
   const petInfo = pets.find(p => p.id === currentUser.petId);
   const [activeTab, setActiveTab] = useState<'FEED' | 'PLAY'>('FEED');
@@ -21,6 +23,8 @@ export default function PetCare() {
       </div>
     );
   }
+
+  const petImageUrl = getPetImage(petInfo, currentUser.petLevel, settings.globalEvolutions);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 flex-1 flex flex-col h-full">
@@ -43,7 +47,7 @@ export default function PetCare() {
           <div className="absolute inset-0 bg-white opacity-40" style={{ backgroundImage: 'radial-gradient(#93C5FD 2px, transparent 2px)', backgroundSize: '30px 30px' }}></div>
           
           <div className="w-48 h-48 animate-bounce relative z-10 drop-shadow-xl flex items-center justify-center" style={{ animationDuration: '4s' }}>
-             <PetAvatar src={petInfo?.baseImageUrl} className="w-full h-full text-[120px]" imgClassName="w-full h-full object-contain drop-shadow-lg" />
+             <PetAvatar src={petImageUrl} className="w-full h-full text-[120px]" imgClassName="w-full h-full object-contain drop-shadow-lg" />
           </div>
           <div className="absolute top-6 left-6 bg-white px-5 py-2 rounded-2xl shadow-md border-4 border-[#FDE68A] flex items-center gap-2 z-10">
             <Star className="text-[#F59E0B] fill-[#F59E0B]" size={20} />

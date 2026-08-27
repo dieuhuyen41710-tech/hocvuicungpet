@@ -27,9 +27,9 @@ export default function AdminLayout() {
   ];
 
   return (
-    <div className="h-screen w-full bg-[#FFFBEB] text-[#1F2937] font-sans flex flex-col overflow-hidden select-none" style={settings.backgroundUrl ? { backgroundImage: `url(${settings.backgroundUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
+    <div className="min-h-screen w-full bg-[#FFFBEB] text-[#1F2937] font-sans flex flex-col select-none relative overflow-x-hidden" style={settings.backgroundUrl ? { backgroundImage: `url(${settings.backgroundUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' } : {}}>
       {settings.backgroundUrl && <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-0"></div>}
-      <div className="relative z-10 w-full h-full flex flex-col">
+      <div className="relative z-10 w-full min-h-screen flex flex-col">
       <header className="h-20 bg-white border-b-4 border-[#FEF3C7] px-4 md:px-6 flex items-center justify-between shadow-sm z-20 shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-[#FCD34D] to-[#F59E0B] rounded-2xl flex items-center justify-center text-xl md:text-2xl shadow-lg shrink-0 cursor-pointer overflow-hidden" onClick={() => navigate('/admin')}>
@@ -56,8 +56,8 @@ export default function AdminLayout() {
         </div>
       </header>
 
-      <div className="flex-1 flex overflow-hidden relative">
-        <nav className="w-20 md:w-24 bg-white border-r-4 border-[#FEF3C7] hidden md:flex flex-col items-center py-8 gap-6 z-10 overflow-y-auto">
+      <div className="flex-1 flex relative">
+        <nav className="w-20 md:w-24 bg-white border-r-4 border-[#FEF3C7] hidden md:flex flex-col items-center py-8 gap-6 z-10 sticky top-20 h-[calc(100vh-5rem)]">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -77,8 +77,8 @@ export default function AdminLayout() {
           ))}
         </nav>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center relative">
-          <div className="w-full max-w-6xl pb-20 md:pb-0 flex flex-col h-full">
+        <main className="flex-1 p-4 md:p-8 flex justify-center relative">
+          <div className="w-full max-w-6xl pb-20 md:pb-0 flex flex-col">
              <Outlet />
           </div>
         </main>

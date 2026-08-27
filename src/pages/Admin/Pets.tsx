@@ -332,9 +332,9 @@ export default function AdminPets() {
               {formData.evolutions.map((evo, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-200"
+                  className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200"
                 >
-                  <div className="w-20">
+                  <div className="w-24">
                     <label className="block text-xs font-bold text-gray-500 mb-1">
                       Cấp độ
                     </label>
@@ -348,44 +348,14 @@ export default function AdminPets() {
                           parseInt(e.target.value) || 0,
                         )
                       }
-                      className="w-full px-2 py-2 rounded-lg border border-gray-300 focus:border-[#F59E0B] focus:outline-none text-sm"
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#F59E0B] focus:outline-none text-sm font-bold text-center"
                     />
                   </div>
-                  <div className="w-28">
-                    <label className="block text-xs font-bold text-gray-500 mb-1">
-                      Điểm XP tối thiểu
-                    </label>
-                    <input
-                      type="number"
-                      value={evo.requiredXp || 0}
-                      onChange={(e) =>
-                        updateEvolution(
-                          idx,
-                          "requiredXp",
-                          parseInt(e.target.value) || 0,
-                        )
-                      }
-                      placeholder="VD: 100"
-                      className="w-full px-2 py-2 rounded-lg border border-gray-300 focus:border-[#F59E0B] focus:outline-none text-sm font-bold text-amber-600"
-                    />
-                  </div>
+                  
                   <div className="flex-1">
-                    <label className="block text-xs font-bold text-gray-500 mb-1">
-                      Tên dạng tiến hóa
-                    </label>
-                    <input
-                      type="text"
-                      value={evo.name}
-                      onChange={(e) =>
-                        updateEvolution(idx, "name", e.target.value)
-                      }
-                      className="w-full px-2 py-2 rounded-lg border border-gray-300 focus:border-[#F59E0B] focus:outline-none text-sm"
-                    />
-                  </div>
-                  <div className="w-48">
                     <div className="flex justify-between items-center mb-1">
                       <label className="block text-xs font-bold text-gray-500">
-                        Hình ảnh (URL / Cloudinary)
+                        Hình ảnh minh họa (URL / Cloudinary)
                       </label>
                       <CloudinaryUploadButton
                         accept="image/*"
@@ -399,21 +369,21 @@ export default function AdminPets() {
                       onChange={(e) =>
                         updateEvolution(idx, "imageUrl", e.target.value)
                       }
-                      className="w-full px-2 py-2 rounded-lg border border-gray-300 focus:border-[#F59E0B] focus:outline-none text-sm"
-                      placeholder="Link hoặc emoji"
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:border-[#F59E0B] focus:outline-none text-sm"
+                      placeholder="Link hình ảnh hoặc emoji"
                     />
                     {evo.imageUrl && (
-                      <div className="mt-1 h-10 w-10 overflow-hidden rounded border bg-white flex items-center justify-center">
-                        <PetAvatar src={evo.imageUrl} className="w-full h-full text-lg" imgClassName="w-full h-full object-cover" />
+                      <div className="mt-2 h-12 w-12 overflow-hidden rounded-xl border-2 border-amber-200 bg-white flex items-center justify-center shadow-sm">
+                        <PetAvatar src={evo.imageUrl} className="w-full h-full text-xl" imgClassName="w-full h-full object-cover" />
                       </div>
                     )}
                   </div>
                   <button
                     type="button"
                     onClick={() => removeEvolution(idx)}
-                    className="mt-4 p-2 text-red-500 hover:bg-red-100 rounded-lg"
+                    className="mt-6 p-2 text-red-500 hover:bg-red-100 rounded-lg"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={20} />
                   </button>
                 </div>
               ))}

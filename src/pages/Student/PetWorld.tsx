@@ -4,6 +4,7 @@ import { Student } from '../../types';
 import { Play, Star, Heart, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import PetAvatar from '../../components/PetAvatar';
+import catImg from '../../assets/images/pixar_cat_avatar_1787838476517.jpg';
 
 export default function PetWorld() {
   const currentUser = useAppStore((state) => state.currentUser) as Student;
@@ -20,11 +21,14 @@ export default function PetWorld() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 h-full flex flex-col">
-      <div className="bg-white p-6 rounded-[32px] shadow-xl border-4 border-[#DBEAFE] flex justify-between items-center">
-         <h1 className="text-3xl font-black text-[#1E3A8A] flex items-center gap-3">
+      <div className="bg-white p-6 rounded-[32px] shadow-xl border-4 border-[#8B5CF6] flex justify-between items-center relative overflow-visible">
+         <div className="absolute -top-6 -right-4 w-20 h-20 bg-white rounded-full p-1 shadow-lg border-4 border-[#8B5CF6] transform -rotate-12 hover:scale-110 transition-transform z-20 flex items-center justify-center overflow-hidden">
+           <img src={catImg} alt="Cute Cat" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+         </div>
+         <h1 className="text-3xl font-black text-[#1E3A8A] flex items-center gap-3 pr-16">
             🌍 Thế giới Pet của em
          </h1>
-         <button onClick={() => navigate('/student/dashboard?new=true')} className="px-6 py-3 bg-[#10B981] hover:bg-[#059669] text-white font-bold rounded-2xl shadow-[0_4px_0_#047857] hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2">
+         <button onClick={() => navigate('/student/dashboard?new=true')} className="px-6 py-3 bg-[#10B981] hover:bg-[#059669] text-white font-bold rounded-2xl shadow-[0_4px_0_#047857] hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-2 relative z-10">
             + Nhận nuôi Pet mới
          </button>
       </div>

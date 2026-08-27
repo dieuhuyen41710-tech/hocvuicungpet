@@ -26,6 +26,7 @@ import { createCrudActions } from "./crudActions";
 import { initializeFirestoreData } from "../lib/firebaseSync";
 import { db, handleFirestoreError, OperationType } from "../lib/firebase";
 import { doc, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { calculatePetLevel, calculatePetLevelByFeedings } from "../lib/petUtils";
 
 interface AppState {
   currentUser: User | Student | null;
@@ -145,17 +146,20 @@ export const useAppStore = create<AppState>()(
             state.users.find((u) => u.username === username) ||
             state.students.find((s) => s.username === username);
           if (user) {
-            const student = user as Student;
+            const student = { ...(user as Student) };
+            student.petLevel = calculatePetLevelByFeedings(student.petFeedCount || 0, state.settings.globalEvolutions);
             let petCompleted: string[] = [];
             if (student.ownedPets && student.currentPetId) {
               const activePet = student.ownedPets.find(p => p.id === student.currentPetId);
               if (activePet && activePet.completedLessons) {
                 petCompleted = activePet.completedLessons;
+                if (activePet.level) student.petLevel = activePet.level;
               }
             } else if (student.ownedPets && student.ownedPets.length > 0) {
               petCompleted = student.ownedPets[0].completedLessons || [];
+              if (student.ownedPets[0].level) student.petLevel = student.ownedPets[0].level;
             }
-            return { currentUser: user, completedLessons: petCompleted };
+            return { currentUser: student, completedLessons: petCompleted };
           }
           return state;
         }),
@@ -258,16 +262,49 @@ export const useAppStore = create<AppState>()(
           if (user && (user.role === "STUDENT" || user.role === "GUEST")) {
             const student = user as Student;
             if (student.points >= cost) {
+              const currentFeedCount = (student.petFeedCount || 0) + 1;
+              const newLevel = calculatePetLevelByFeedings(currentFeedCount, state.settings.globalEvolutions);
+
+              let updatedOwnedPets = student.ownedPets || [];
+              if (student.currentPetId) {
+                updatedOwnedPets = updatedOwnedPets.map(p => {
+                  if (p.id === student.currentPetId) {
+                    return {
+                      ...p,
+                      level: newLevel,
+                      feedCount: currentFeedCount,
+                      hunger: Math.min(100, p.hunger + hungerAmount),
+                      happiness: Math.min(100, p.happiness + happinessAmount)
+                    };
+                  }
+                  return p;
+                });
+              } else if (updatedOwnedPets.length > 0) {
+                updatedOwnedPets[0] = {
+                  ...updatedOwnedPets[0],
+                  level: newLevel,
+                  feedCount: currentFeedCount,
+                  hunger: Math.min(100, updatedOwnedPets[0].hunger + hungerAmount),
+                  happiness: Math.min(100, updatedOwnedPets[0].happiness + happinessAmount)
+                };
+              }
+
+              const updatedUser = {
+                ...student,
+                points: student.points - cost,
+                petFeedCount: currentFeedCount,
+                petLevel: newLevel,
+                petHunger: Math.min(100, student.petHunger + hungerAmount),
+                petHappiness: Math.min(100, student.petHappiness + happinessAmount),
+                ownedPets: updatedOwnedPets
+              };
+
+              const students = state.students.map(s => s.id === updatedUser.id ? (updatedUser as Student) : s);
+              setDoc(doc(db, 'students', updatedUser.id), updatedUser, { merge: true }).catch(() => {});
+
               return {
-                currentUser: {
-                  ...student,
-                  points: student.points - cost,
-                  petHunger: Math.min(100, student.petHunger + hungerAmount),
-                  petHappiness: Math.min(
-                    100,
-                    student.petHappiness + happinessAmount,
-                  ),
-                },
+                currentUser: updatedUser as any,
+                students,
               };
             }
           }
@@ -280,19 +317,26 @@ export const useAppStore = create<AppState>()(
           if (user && (user.role === "STUDENT" || user.role === "GUEST")) {
             const student = user as Student;
             const newXp = student.xp + xp;
-            // Simple level calculation for demo
-            let newLevel = student.petLevel;
-            if (newXp >= 1000) newLevel = 5;
-            else if (newXp >= 600) newLevel = 4;
-            else if (newXp >= 300) newLevel = 3;
-            else if (newXp >= 100) newLevel = 2;
+            const newPoints = student.points + points;
+            const newLevel = calculatePetLevel(newXp, newPoints);
+
+            let updatedOwnedPets = student.ownedPets || [];
+            if (student.currentPetId) {
+              updatedOwnedPets = updatedOwnedPets.map(p => {
+                if (p.id === student.currentPetId) {
+                  return { ...p, level: newLevel };
+                }
+                return p;
+              });
+            }
 
             return {
               currentUser: {
                 ...student,
-                points: student.points + points,
+                points: newPoints,
                 xp: newXp,
                 petLevel: newLevel,
+                ownedPets: updatedOwnedPets,
               },
             };
           }
@@ -349,6 +393,7 @@ export const useAppStore = create<AppState>()(
             };
             
             const students = state.students.map(s => s.id === updatedUser.id ? (updatedUser as Student) : s);
+            setDoc(doc(db, 'students', updatedUser.id), updatedUser, { merge: true }).catch(() => {});
             
             return {
               currentUser: updatedUser as any,
@@ -376,6 +421,7 @@ export const useAppStore = create<AppState>()(
                     hunger: student.petHunger,
                     happiness: student.petHappiness,
                     energy: student.petEnergy,
+                    feedCount: student.petFeedCount || 0,
                     completedLessons: state.completedLessons
                   };
                 }
@@ -390,14 +436,16 @@ export const useAppStore = create<AppState>()(
                 petId: targetPet.templateId,
                 currentPetId: targetPet.id,
                 petName: targetPet.name,
-                petLevel: targetPet.level,
+                petLevel: targetPet.level || 1,
                 petHunger: targetPet.hunger,
                 petHappiness: targetPet.happiness,
                 petEnergy: targetPet.energy,
+                petFeedCount: targetPet.feedCount || 0,
                 ownedPets: updatedOwnedPets
               };
               
               const students = state.students.map(s => s.id === updatedUser.id ? (updatedUser as Student) : s);
+              setDoc(doc(db, 'students', updatedUser.id), updatedUser, { merge: true }).catch(() => {});
               return { 
                 currentUser: updatedUser, 
                 students,

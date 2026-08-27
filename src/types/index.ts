@@ -22,6 +22,7 @@ export interface StudentPet {
   hunger: number;
   happiness: number;
   energy: number;
+  feedCount?: number;
   completedLessons?: string[];
   adoptedAt: string;
 }
@@ -39,6 +40,7 @@ export interface Student extends User {
   petHunger: number;
   petHappiness: number;
   petEnergy: number;
+  petFeedCount?: number;
   lastLogin: string;
   ownedPets?: StudentPet[];
 }
@@ -132,6 +134,7 @@ export interface PetEvolution {
   name: string;
   imageUrl: string;
   requiredXp?: number;
+  requiredFeedings?: number;
 }
 
 export interface PetTemplate {

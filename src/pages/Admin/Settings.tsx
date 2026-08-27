@@ -184,7 +184,7 @@ export default function AdminSettings() {
                   ...formData,
                   globalEvolutions: [
                     ...currentEvos,
-                    { level: currentEvos.length + 2, name: '', imageUrl: '⭐' }
+                    { level: currentEvos.length + 2, name: '' }
                   ]
                 });
                 setIsSaved(false);
@@ -231,19 +231,20 @@ export default function AdminSettings() {
                   />
                 </div>
                 <div className="w-28">
-                  <label className="block text-xs font-bold text-gray-500 mb-1">Biểu tượng / Ảnh</label>
+                  <label className="block text-xs font-bold text-gray-500 mb-1">Số lần cho ăn</label>
                   <input
-                    type="text"
-                    value={evo.imageUrl}
+                    type="number"
+                    value={evo.requiredFeedings ?? (evo.level * 3)}
                     onChange={(e) => {
                       const currentEvos = [...(formData.globalEvolutions || [])];
-                      currentEvos[idx] = { ...currentEvos[idx], imageUrl: e.target.value };
+                      currentEvos[idx] = { ...currentEvos[idx], requiredFeedings: parseInt(e.target.value) || 0 };
                       setFormData({ ...formData, globalEvolutions: currentEvos });
                       setIsSaved(false);
                     }}
                     className="w-full px-3 py-2 rounded-lg border border-gray-300 font-bold text-sm text-center"
                   />
                 </div>
+
                 <button
                   type="button"
                   onClick={() => {

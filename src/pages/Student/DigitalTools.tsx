@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
 import { Calculator, Triangle, Circle, Square, Cylinder } from 'lucide-react';
+import dogImg from '../../assets/images/pixar_dog_avatar_1787838495530.jpg';
 
 export default function DigitalTools() {
   const [activeTab, setActiveTab] = useState<'CALC' | 'GEOMETRY'>('CALC');
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 h-full flex flex-col">
-      <div className="bg-white p-6 rounded-[32px] shadow-xl border-4 border-[#DBEAFE] flex flex-col sm:flex-row justify-between items-center gap-4">
-         <h1 className="text-3xl font-black text-[#1E3A8A] flex items-center gap-3">
+      <div className="bg-white p-6 rounded-[32px] shadow-xl border-4 border-[#10B981] flex flex-col sm:flex-row justify-between items-center gap-4 relative overflow-visible">
+         <div className="absolute -top-6 -right-4 w-20 h-20 bg-white rounded-full p-1 shadow-lg border-4 border-[#10B981] transform rotate-6 hover:scale-110 transition-transform z-20 flex items-center justify-center overflow-hidden">
+           <img src={dogImg} alt="Cute Dog" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+         </div>
+         <h1 className="text-3xl font-black text-[#1E3A8A] flex items-center gap-3 pr-16">
             <div className="w-12 h-12 bg-[#FEF3C7] rounded-full flex items-center justify-center border-4 border-[#FCD34D]">
               <Calculator className="text-[#D97706]" size={24} />
             </div>
             Công Cụ Số
          </h1>
-         <div className="flex items-center gap-2 bg-gray-100 p-1.5 rounded-2xl">
+         <div className="flex items-center gap-2 bg-gray-100 p-1.5 rounded-2xl relative z-10">
             <button
               onClick={() => setActiveTab('CALC')}
               className={`px-6 py-2.5 rounded-xl font-bold transition-all ${activeTab === 'CALC' ? 'bg-white text-[#2563EB] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}

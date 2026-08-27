@@ -2,6 +2,11 @@ import React from "react";
 import { useAppStore } from "../../store/useAppStore";
 import { Student } from "../../types";
 import { Trophy, Users, BookOpen, Star } from "lucide-react";
+import cutePetsImg from "../../assets/images/cute_pets_banner_1787838175550.jpg";
+import bunnyImg from "../../assets/images/pixar_bunny_avatar_1787838459749.jpg";
+import catImg from "../../assets/images/pixar_cat_avatar_1787838476517.jpg";
+import dogImg from "../../assets/images/pixar_dog_avatar_1787838495530.jpg";
+import pandaImg from "../../assets/images/pixar_panda_avatar_1787838510229.jpg";
 
 export default function StudentHome() {
   const currentUser = useAppStore(
@@ -10,8 +15,18 @@ export default function StudentHome() {
   const settings = useAppStore((state) => state.settings);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 flex-1 w-full h-full pb-10">
-      <div className="bg-gradient-to-r from-[#3B82F6] to-[#8B5CF6] rounded-[40px] p-8 md:p-12 text-white shadow-xl relative overflow-hidden border-4 border-[#C4B5FD]">
+    <div className="max-w-6xl mx-auto space-y-8 flex-1 w-full h-full pb-10 relative overflow-hidden">
+      {/* Floating Butterflies & Bees Background Effect */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-75">
+        <div className="absolute top-10 left-[10%] text-3xl animate-[bounce_4s_infinite] duration-1000">🦋</div>
+        <div className="absolute top-40 right-[15%] text-3xl animate-[pulse_3s_infinite]">🐝</div>
+        <div className="absolute top-96 left-[5%] text-2xl animate-[bounce_5s_infinite]">🌸</div>
+        <div className="absolute bottom-32 right-[10%] text-3xl animate-[bounce_6s_infinite]">🦋</div>
+        <div className="absolute top-1/2 left-[50%] text-2xl animate-[pulse_4s_infinite]">✨</div>
+        <div className="absolute bottom-10 left-[30%] text-3xl animate-[bounce_4.5s_infinite]">🐝</div>
+      </div>
+
+      <div className="bg-gradient-to-r from-[#3B82F6] to-[#8B5CF6] rounded-[40px] p-8 md:p-12 text-white shadow-xl relative overflow-hidden border-4 border-[#C4B5FD] z-10">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl -mr-10 -mt-10"></div>
         <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
           <div className="flex-1 text-center md:text-left">
@@ -31,22 +46,32 @@ export default function StudentHome() {
               </div>
             )}
           </div>
-          <div className="text-8xl md:text-9xl animate-bounce drop-shadow-2xl">
-            🏰
+          <div className="w-full md:w-auto flex justify-center">
+            <div className="max-w-md md:max-w-lg rounded-3xl overflow-hidden shadow-2xl border-4 border-white/40 transform hover:scale-105 transition-transform duration-300">
+              <img 
+                src={cutePetsImg} 
+                alt="Vương quốc Pet" 
+                className="w-full h-auto object-cover"
+                referrerPolicy="no-referrer"
+              />
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
         <div className="space-y-8 flex flex-col">
-          {/* Intro & Instructions */}
-          <div className="bg-white rounded-[32px] p-8 shadow-xl border-4 border-[#DBEAFE] space-y-6">
-            <h2 className="text-2xl font-black text-[#1E3A8A] border-b-4 border-[#E0F2FE] pb-4 flex items-center gap-3">
-              <BookOpen className="text-[#3B82F6]" size={32} /> Giới thiệu & Hướng dẫn
+          {/* Intro & Instructions - Bunny Pet Corner & Pink/Rose Border */}
+          <div className="bg-white rounded-[32px] p-8 shadow-xl border-4 border-[#EC4899] relative overflow-visible">
+            <div className="absolute -top-6 -right-4 w-20 h-20 bg-white rounded-full p-1 shadow-lg border-4 border-[#EC4899] transform rotate-12 hover:scale-110 transition-transform z-20 flex items-center justify-center overflow-hidden">
+              <img src={bunnyImg} alt="Cute Bunny" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            </div>
+            <h2 className="text-2xl font-black text-[#BE185D] border-b-4 border-[#FCE7F3] pb-4 flex items-center gap-3 pr-16">
+              <BookOpen className="text-[#EC4899]" size={32} /> Giới thiệu & Hướng dẫn
             </h2>
-            <div className="space-y-4 text-[#475569] font-medium leading-relaxed">
+            <div className="space-y-4 text-[#475569] font-medium leading-relaxed mt-4">
               <p>
-                <strong className="text-[#1E40AF]">Vương quốc Pet tri thức</strong> là một hành trình học tập đầy thú vị, nơi mỗi bài học toán học của bạn sẽ giúp cho một người bạn Pet đồng hành ngày càng trưởng thành và mạnh mẽ hơn.
+                <strong className="text-[#BE185D]">Vương quốc Pet tri thức</strong> là một hành trình học tập đầy thú vị, nơi mỗi bài học toán học của bạn sẽ giúp cho một người bạn Pet đồng hành ngày càng trưởng thành và mạnh mẽ hơn.
               </p>
               <ul className="list-disc pl-5 space-y-2">
                 <li>Hoàn thành bài học để nhận <strong>Xu</strong> và <strong>Kinh nghiệm (XP)</strong>.</li>
@@ -60,9 +85,12 @@ export default function StudentHome() {
             </div>
           </div>
 
-          {/* Thông tin */}
-          <div className="bg-white rounded-[32px] border-4 border-[#E2E8F0] shadow-xl p-8 flex flex-col gap-4">
-            <h4 className="text-xl font-black text-gray-700 flex items-center gap-3">
+          {/* Thông tin - Cat Pet Corner & Purple Border */}
+          <div className="bg-white rounded-[32px] border-4 border-[#8B5CF6] shadow-xl p-8 flex flex-col gap-4 relative overflow-visible">
+            <div className="absolute -top-6 -right-4 w-20 h-20 bg-white rounded-full p-1 shadow-lg border-4 border-[#8B5CF6] transform -rotate-12 hover:scale-110 transition-transform z-20 flex items-center justify-center overflow-hidden">
+              <img src={catImg} alt="Cute Cat" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            </div>
+            <h4 className="text-xl font-black text-[#6D28D9] flex items-center gap-3 pr-16">
               📜 Thông Tin
             </h4>
             <div className="space-y-4 mt-2">
@@ -88,8 +116,11 @@ export default function StudentHome() {
         </div>
 
         <div className="space-y-8 flex flex-col">
-          {/* Stats */}
-          <div className="bg-white rounded-[32px] p-6 shadow-xl border-4 border-[#D1FAE5] flex items-center justify-between">
+          {/* Stats - Dog Pet Corner & Emerald Border */}
+          <div className="bg-white rounded-[32px] p-6 shadow-xl border-4 border-[#10B981] flex items-center justify-between relative overflow-visible">
+            <div className="absolute -top-6 -right-4 w-20 h-20 bg-white rounded-full p-1 shadow-lg border-4 border-[#10B981] transform rotate-6 hover:scale-110 transition-transform z-20 flex items-center justify-center overflow-hidden">
+              <img src={dogImg} alt="Cute Dog" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            </div>
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-[#ECFDF5] rounded-2xl flex items-center justify-center border-4 border-[#A7F3D0]">
                 <Users className="text-[#10B981]" size={32} />
@@ -101,14 +132,15 @@ export default function StudentHome() {
                 <p className="text-3xl font-black text-[#059669]">1,284</p>
               </div>
             </div>
-            <div className="hidden sm:block text-5xl">👀</div>
           </div>
 
-          {/* Leaderboard */}
-          <div className="bg-white rounded-[32px] p-8 shadow-xl border-4 border-[#FEF08A] flex-1">
-            <h2 className="text-2xl font-black text-[#B45309] border-b-4 border-[#FEF9C3] pb-4 mb-6 flex items-center gap-3">
-              <Trophy className="text-[#F59E0B]" size={32} /> Bảng Vàng Thành
-              Tích
+          {/* Leaderboard - Panda Pet Corner & Amber Border */}
+          <div className="bg-white rounded-[32px] p-8 shadow-xl border-4 border-[#F59E0B] flex-1 relative overflow-visible">
+            <div className="absolute -top-6 -right-4 w-20 h-20 bg-white rounded-full p-1 shadow-lg border-4 border-[#F59E0B] transform -rotate-6 hover:scale-110 transition-transform z-20 flex items-center justify-center overflow-hidden">
+              <img src={pandaImg} alt="Cute Panda" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            </div>
+            <h2 className="text-2xl font-black text-[#D97706] border-b-4 border-[#FEF9C3] pb-4 mb-6 flex items-center gap-3 pr-16">
+              <Trophy className="text-[#F59E0B]" size={32} /> Bảng Vàng Thành Tích
             </h2>
             <div className="space-y-4">
               {[

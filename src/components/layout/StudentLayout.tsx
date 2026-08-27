@@ -40,9 +40,9 @@ export default function StudentLayout() {
   ];
 
   return (
-    <div className="h-screen w-full bg-[#F0F9FF] text-[#2D3748] font-sans flex flex-col overflow-hidden select-none" style={settings.backgroundUrl ? { backgroundImage: `url(${settings.backgroundUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
+    <div className="min-h-screen w-full bg-[#F0F9FF] text-[#2D3748] font-sans flex flex-col select-none relative overflow-x-hidden" style={settings.backgroundUrl ? { backgroundImage: `url(${settings.backgroundUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' } : {}}>
       {settings.backgroundUrl && <div className="absolute inset-0 bg-white/70 backdrop-blur-sm z-0"></div>}
-      <div className="relative z-10 w-full h-full flex flex-col">
+      <div className="relative z-10 w-full min-h-screen flex flex-col">
       <header className="h-20 bg-white border-b-4 border-[#E0F2FE] px-4 md:px-6 flex items-center justify-between shadow-sm z-20 shrink-0">
         <div className="flex items-center gap-3">
           <div
@@ -138,7 +138,7 @@ export default function StudentLayout() {
         </div>
       </header>
 
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex relative">
         <FloatingPet onOpenAI={() => setIsAIOpen(true)} />
         <StudyTimer
           forceShow={showTimerReminder}
@@ -146,7 +146,7 @@ export default function StudentLayout() {
         />
         <PetAIAssistant isOpen={isAIOpen} onClose={() => setIsAIOpen(false)} />
 
-        <nav className="w-20 md:w-24 bg-white border-r-4 border-[#E0F2FE] hidden md:flex flex-col items-center py-8 gap-6 z-10 overflow-y-auto">
+        <nav className="w-20 md:w-24 bg-white border-r-4 border-[#E0F2FE] hidden md:flex flex-col items-center py-8 gap-6 z-10 sticky top-20 h-[calc(100vh-5rem)]">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -179,7 +179,7 @@ export default function StudentLayout() {
           </div>
         </nav>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center relative">
+        <main className="flex-1 p-4 md:p-8 flex justify-center relative">
           {isSleeping && (
             <div className="absolute top-4 left-4 right-4 bg-[#1E3A8A] text-white p-4 rounded-2xl shadow-xl flex items-center justify-between z-50 border-4 border-[#3B82F6]">
               <div className="flex items-center space-x-4">
@@ -196,7 +196,7 @@ export default function StudentLayout() {
             </div>
           )}
 
-          <div className="w-full max-w-6xl pb-20 md:pb-0 flex flex-col h-full">
+          <div className="w-full max-w-6xl pb-24 md:pb-12 flex flex-col min-h-full">
             <Outlet />
           </div>
         </main>

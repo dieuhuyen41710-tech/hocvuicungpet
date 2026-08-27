@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router";
 import { useAppStore } from "../../store/useAppStore";
 import { Student } from "../../types";
 import PetAvatar from "../../components/PetAvatar";
+import { getPetImage } from "../../lib/petUtils";
 
 
 export default function StudentDashboard() {
@@ -83,6 +84,7 @@ export default function StudentDashboard() {
   }
 
   const petInfo = pets.find((p) => p.id === currentUser.petId);
+  const petImageUrl = getPetImage(petInfo, currentUser.petLevel, settings.globalEvolutions);
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 w-full h-full">
@@ -130,7 +132,7 @@ export default function StudentDashboard() {
               <div className="relative z-10 flex flex-col items-center gap-4">
                 <div className="absolute -top-12 md:-top-16 animate-bounce">
                   <div className="w-12 h-12 md:w-16 md:h-16 bg-[#FBCFE8] rounded-full border-4 border-white flex items-center justify-center text-2xl md:text-3xl shadow-xl overflow-hidden">
-                    <PetAvatar src={petInfo?.baseImageUrl} className="w-full h-full" imgClassName="w-full h-full object-cover" />
+                    <PetAvatar src={petImageUrl} className="w-full h-full" imgClassName="w-full h-full object-cover" />
                   </div>
                   <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-b-4 border-r-4 border-white"></div>
                 </div>
@@ -230,7 +232,7 @@ export default function StudentDashboard() {
       <aside className="w-full lg:w-80 flex flex-col gap-6 shrink-0">
         <div className="bg-white rounded-[40px] border-4 border-[#FDF2F8] shadow-xl p-6 flex flex-col items-center gap-4">
           <div className="relative w-32 h-32 md:w-40 md:h-40 bg-gradient-to-b from-[#FDF2F8] to-[#FCE7F3] rounded-full border-4 border-white shadow-inner flex items-center justify-center overflow-hidden">
-            <PetAvatar src={petInfo?.baseImageUrl} className="w-full h-full text-6xl md:text-7xl" imgClassName="w-full h-full object-cover" />
+            <PetAvatar src={petImageUrl} className="w-full h-full text-6xl md:text-7xl" imgClassName="w-full h-full object-cover" />
             <div className="absolute -bottom-2 -right-2 bg-white px-3 py-1 rounded-full border-2 border-[#F9A8D4] text-xs font-black text-[#DB2777]">
               Cấp {currentUser.petLevel}
             </div>

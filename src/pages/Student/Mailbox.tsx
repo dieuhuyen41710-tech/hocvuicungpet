@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { Student, User } from '../../types';
 import { Mail, Send, Inbox, AlertCircle } from 'lucide-react';
+import pandaImg from '../../assets/images/pixar_panda_avatar_1787838510229.jpg';
 
 export default function Mailbox() {
   const currentUser = useAppStore((state) => state.currentUser) as Student | null;
@@ -58,11 +59,14 @@ export default function Mailbox() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 flex-1 w-full h-full pb-10">
-      <div className="flex items-center gap-4 bg-white p-6 rounded-[32px] shadow-xl border-4 border-[#DBEAFE]">
-        <div className="w-16 h-16 bg-[#EFF6FF] rounded-2xl flex items-center justify-center border-4 border-[#BFDBFE]">
+      <div className="flex items-center gap-4 bg-white p-6 rounded-[32px] shadow-xl border-4 border-[#F59E0B] relative overflow-visible">
+        <div className="absolute -top-6 -right-4 w-20 h-20 bg-white rounded-full p-1 shadow-lg border-4 border-[#F59E0B] transform -rotate-6 hover:scale-110 transition-transform z-20 flex items-center justify-center overflow-hidden">
+          <img src={pandaImg} alt="Cute Panda" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+        </div>
+        <div className="w-16 h-16 bg-[#EFF6FF] rounded-2xl flex items-center justify-center border-4 border-[#BFDBFE] shrink-0">
           <Mail className="text-[#3B82F6]" size={32} />
         </div>
-        <div>
+        <div className="pr-16">
           <h1 className="text-3xl font-black text-[#1E3A8A] uppercase">Hòm Thư Liên Hệ</h1>
           <p className="text-[#64748B] font-bold mt-1">Gửi thắc mắc hoặc góp ý tới Giáo viên và Quản trị viên</p>
         </div>
