@@ -199,6 +199,7 @@ export interface SystemSettings {
   adminWelcomeMessage?: string;
   studentWelcomeTitle?: string;
   studentWelcomeSubtitle?: string;
+  posterUrl?: string;
   globalEvolutions?: PetEvolution[];
 }
 

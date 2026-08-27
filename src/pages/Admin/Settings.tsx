@@ -364,6 +364,34 @@ export default function AdminSettings() {
           </div>
         </div>
 
+        {/* Poster Website Giới thiệu (Hiển thị trang đăng nhập) */}
+        <div className="space-y-2 pt-6 border-t-2 border-[#FEF3C7]">
+          <label className="block font-black text-gray-700 text-sm uppercase tracking-wide">
+            Ảnh Poster Giới thiệu Website (Hiển thị nguyên bản ở nửa trái trang Đăng nhập)
+          </label>
+          <div className="flex flex-col sm:flex-row items-center gap-4 bg-amber-50 p-4 rounded-2xl border-2 border-amber-200">
+            {formData.posterUrl && (
+              <img src={formData.posterUrl} alt="Poster" className="w-32 h-32 object-cover rounded-xl border-2 border-amber-300 shadow" />
+            )}
+            <div className="flex-1 space-y-2 w-full">
+              <input
+                type="text"
+                name="posterUrl"
+                value={formData.posterUrl || ''}
+                onChange={handleChange}
+                placeholder="Link ảnh poster (VD: https://... hoặc tải lên)"
+                className="w-full px-4 py-3 bg-white border-2 border-amber-300 rounded-xl focus:outline-none focus:border-[#D97706] font-bold text-[#1F2937] text-sm"
+              />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleImageUpload(e, 'posterUrl')}
+                className="w-full text-sm text-gray-600 file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-sm file:font-black file:bg-[#F59E0B] file:text-white hover:file:bg-[#D97706] cursor-pointer"
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="pt-6 border-t-2 border-[#FEF3C7] flex items-center justify-between">
           {isSaved ? (
             <span className="font-bold text-emerald-500 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-200 flex items-center gap-2">
