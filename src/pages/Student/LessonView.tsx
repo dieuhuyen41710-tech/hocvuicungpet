@@ -194,7 +194,7 @@ export default function LessonView() {
             </div>
           )}
           {activeTab === 'QUIZ' && (
-            <div className="animate-fade-in h-full flex flex-col justify-center">
+            <div className="animate-fade-in w-full pb-8">
               {!isCompleted ? (
                 <div className="text-center py-12 max-w-md mx-auto bg-white p-8 rounded-[32px] border-4 border-[#E2E8F0]">
                   <BookOpen className="mx-auto text-[#CBD5E1] mb-6" size={80} strokeWidth={1.5} />
@@ -206,7 +206,7 @@ export default function LessonView() {
                   <p className="text-[#64748B] font-bold text-lg">Chưa có câu hỏi cho bài học này.</p>
                 </div>
               ) : !quizStarted ? (
-                <div className="text-center py-12 space-y-8 max-w-md mx-auto bg-white p-10 rounded-[40px] border-4 border-[#FDE68A] shadow-xl">
+                <div className="text-center py-12 space-y-8 max-w-md mx-auto bg-white p-10 rounded-[40px] border-4 border-[#FDE68A] shadow-xl my-auto">
                   <div className="w-32 h-32 bg-[#FFFBEB] rounded-full border-4 border-[#FCD34D] flex items-center justify-center mx-auto shadow-inner">
                      <Trophy className="text-[#F59E0B]" size={64} />
                   </div>
@@ -251,7 +251,7 @@ export default function LessonView() {
                   </div>
                 </div>
               ) : (
-                <div className="max-w-5xl mx-auto w-full space-y-8 w-full">
+                <div className="max-w-5xl mx-auto w-full space-y-8">
                   <div className="flex justify-between items-center bg-white p-4 rounded-2xl border-4 border-[#E2E8F0] shadow-sm">
                     <span className="font-black text-[#64748B] uppercase tracking-widest text-sm ml-2">CÂU HỎI {currentQuestionIndex + 1} / {lessonQuestions.length}</span>
                     <div className="flex gap-2 mr-2">
@@ -265,7 +265,7 @@ export default function LessonView() {
                     <div className="absolute -top-6 left-8 bg-[#FEF3C7] text-[#D97706] font-black px-6 py-2 rounded-full border-4 border-white shadow-md uppercase tracking-wider text-sm">
                       Chọn đáp án đúng
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-black text-[#1E3A8A] mb-4 leading-tight mt-4">
+                    <h3 className="text-2xl md:text-3xl font-black text-[#1E3A8A] mb-6 leading-relaxed mt-4 break-words whitespace-normal">
                       {lessonQuestions[currentQuestionIndex].content}
                     </h3>
                     {lessonQuestions[currentQuestionIndex].imageUrl && (
@@ -288,14 +288,14 @@ export default function LessonView() {
                           )}
                         >
                           <span className={clsx(
-                            "inline-flex items-center justify-center w-12 h-12 rounded-xl text-xl font-black mr-4 transition-colors",
+                            "inline-flex items-center justify-center w-12 h-12 rounded-xl text-xl font-black mr-4 transition-colors shrink-0",
                             selectedAnswers[lessonQuestions[currentQuestionIndex].id] === idx
                               ? "bg-[#3B82F6] text-white"
                               : "bg-[#E2E8F0] text-[#64748B] group-hover:bg-[#DBEAFE] group-hover:text-[#2563EB]"
                           )}>
                             {String.fromCharCode(65 + idx)}
                           </span>
-                          {opt}
+                          <span className="break-words whitespace-normal flex-1">{opt}</span>
                         </button>
                       ))}
 
@@ -324,7 +324,7 @@ export default function LessonView() {
                     </div>
                   </div>
 
-                  <div className="flex justify-between pt-4 gap-4">
+                  <div className="flex justify-between pt-4 gap-4 pb-4">
                     <button 
                       disabled={currentQuestionIndex === 0}
                       onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
