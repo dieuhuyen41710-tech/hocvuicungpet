@@ -29,9 +29,8 @@ export function calculatePetLevelByFeedings(feedCount: number, globalEvolutions?
 
 export function getPetImage(petInfo: any, level: number, globalEvolutions?: any[]) {
   if (!petInfo) return '🐾';
-  if (level <= 1) return petInfo.baseImageUrl || '🐾';
 
-  // Check pet-specific evolutions
+  // Check pet-specific evolutions for exact level
   if (petInfo.evolutions && Array.isArray(petInfo.evolutions)) {
     const evo = petInfo.evolutions.find((e: any) => e.level === level);
     if (evo && evo.imageUrl) {
@@ -39,7 +38,7 @@ export function getPetImage(petInfo: any, level: number, globalEvolutions?: any[
     }
   }
 
-  // Check global evolutions
+  // Check global evolutions for exact level
   if (globalEvolutions && Array.isArray(globalEvolutions)) {
     const globalEvo = globalEvolutions.find((e: any) => e.level === level);
     if (globalEvo && globalEvo.imageUrl) {
@@ -47,5 +46,25 @@ export function getPetImage(petInfo: any, level: number, globalEvolutions?: any[
     }
   }
 
+  if (level <= 1) return petInfo.baseImageUrl || '🐾';
+
   return petInfo.baseImageUrl || '🐾';
 }
+
+export function getFeedingsNeededForNextLevel(feedCount: number, currentLevel: number, globalEvolutions?: any[]): { nextLevel: number, feedingsNeeded: number } {
+  if (currentLevel >= 5) return { nextLevel: 5, feedingsNeeded: 0 };
+  const nextLevel = currentLevel + 1;
+  let required = nextLevel * 3;
+  if (globalEvolutions && Array.isArray(globalEvolutions) && globalEvolutions.length > 0) {
+    const evo = globalEvolutions.find((e: any) => e.level === nextLevel);
+    if (evo && evo.requiredFeedings !== undefined) {
+      required = evo.requiredFeedings;
+    }
+  } else {
+    const defaults: Record<number, number> = { 2: 3, 3: 6, 4: 10, 5: 15 };
+    required = defaults[nextLevel] || (nextLevel * 3);
+  }
+  const feedingsNeeded = Math.max(0, required - (feedCount || 0));
+  return { nextLevel, feedingsNeeded };
+}
+

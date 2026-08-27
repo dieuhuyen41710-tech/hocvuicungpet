@@ -5,12 +5,16 @@ import { mockFoods } from '../../data/mockData';
 import { Star, Smile, Zap, Heart, Utensils, Gamepad2, Info } from 'lucide-react';
 import PetAvatar from '../../components/PetAvatar';
 import { getPetImage } from '../../lib/petUtils';
+import { useNavigate } from 'react-router';
 
 export default function PetCare() {
   const currentUser = useAppStore((state) => state.currentUser) as Student;
   const pets = useAppStore((state) => state.pets);
   const settings = useAppStore((state) => state.settings);
   const feedPet = useAppStore((state) => state.feedPet);
+  const miniGames = useAppStore((state) => state.miniGames);
+  const playMiniGameReward = useAppStore((state) => state.playMiniGameReward);
+  const navigate = useNavigate();
   const petInfo = pets.find(p => p.id === currentUser.petId);
   const [activeTab, setActiveTab] = useState<'FEED' | 'PLAY'>('FEED');
 
@@ -143,17 +147,49 @@ export default function PetCare() {
             )}
 
             {activeTab === 'PLAY' && (
-               <div className="flex flex-col items-center justify-center h-full text-center space-y-6 py-8">
-                  <div className="w-24 h-24 bg-[#FEF3C7] rounded-[32px] border-4 border-[#FDE68A] flex items-center justify-center mb-2 shadow-inner transform rotate-3">
-                     <Gamepad2 className="text-[#D97706]" size={48} strokeWidth={2.5} />
-                  </div>
-                  <h3 className="text-2xl font-black text-[#D97706] uppercase tracking-wide">Tính năng đang xây dựng!</h3>
-                  <p className="text-[#B45309] font-bold max-w-sm">
-                    Các mini-game chơi cùng Pet sẽ sớm được ra mắt. Hãy tích lũy năng lượng nhé!
-                  </p>
-                  <button className="px-8 py-4 bg-[#F3F4F6] text-[#9CA3AF] font-black rounded-2xl border-4 border-[#E5E7EB] cursor-not-allowed uppercase tracking-wider text-sm mt-4">
-                    Sắp ra mắt
-                  </button>
+               <div className="space-y-6">
+                 <div className="flex items-start gap-3 bg-[#FEF3C7] p-4 rounded-2xl border border-[#FDE68A]">
+                   <Info className="text-[#D97706] flex-shrink-0 mt-0.5" size={20} />
+                   <p className="text-sm text-[#92400E] font-medium">Hoàn thành mỗi trò chơi trong Phòng Game sẽ tự động cộng <strong className="font-black">+20% No</strong> và <strong className="font-black">+20% Vui vẻ</strong> cho Pet!</p>
+                 </div>
+
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                   {(miniGames || []).map(game => (
+                     <div key={game.id} className="bg-white border-4 border-[#E2E8F0] rounded-[24px] p-5 flex flex-col items-center text-center shadow-sm hover:border-[#93C5FD] transition-all hover:-translate-y-1 hover:shadow-md">
+                       <div className="w-16 h-16 bg-[#EFF6FF] text-[#3B82F6] rounded-2xl flex items-center justify-center mb-3 shadow-inner">
+                         <Gamepad2 size={32} />
+                       </div>
+                       <h4 className="font-black text-[#1E3A8A] mb-1 uppercase tracking-wide">{game.title}</h4>
+                       <p className="text-xs font-bold text-[#64748B] mb-4 line-clamp-2">{game.description}</p>
+                       <button 
+                         onClick={() => {
+                           playMiniGameReward();
+                           navigate('/student/minigame');
+                         }}
+                         className="w-full py-3 bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-black rounded-xl uppercase text-sm tracking-widest shadow-[0_4px_0_#047857] hover:translate-y-1 hover:shadow-none transition-all"
+                       >
+                         🎮 Chơi & Nhận Thưởng
+                       </button>
+                     </div>
+                   ))}
+
+                   <div className="bg-white border-4 border-[#E2E8F0] rounded-[24px] p-5 flex flex-col items-center text-center shadow-sm hover:border-[#93C5FD] transition-all hover:-translate-y-1 hover:shadow-md">
+                     <div className="w-16 h-16 bg-[#FEF3C7] text-[#D97706] rounded-2xl flex items-center justify-center mb-3 shadow-inner">
+                       <Zap size={32} />
+                     </div>
+                     <h4 className="font-black text-[#1E3A8A] mb-1 uppercase tracking-wide">Đập Chuột Tri Thức</h4>
+                     <p className="text-xs font-bold text-[#64748B] mb-4">Luyện phản xạ và ôn tập kiến thức nhanh.</p>
+                     <button 
+                       onClick={() => {
+                         playMiniGameReward();
+                         navigate('/student/minigame');
+                       }}
+                       className="w-full py-3 bg-gradient-to-r from-[#10B981] to-[#059669] text-white font-black rounded-xl uppercase text-sm tracking-widest shadow-[0_4px_0_#047857] hover:translate-y-1 hover:shadow-none transition-all"
+                     >
+                       🎮 Chơi & Nhận Thưởng
+                     </button>
+                   </div>
+                 </div>
                </div>
             )}
           </div>

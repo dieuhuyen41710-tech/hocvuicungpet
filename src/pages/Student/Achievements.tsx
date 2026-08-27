@@ -2,18 +2,17 @@ import React from 'react';
 import { useAppStore } from '../../store/useAppStore';
 import { Student } from '../../types';
 import { Trophy, Star, Medal, Zap, Award, BookOpen, Flame } from 'lucide-react';
+import { getFeedingsNeededForNextLevel } from '../../lib/petUtils';
 
 export default function Achievements() {
   const currentUser = useAppStore(state => state.currentUser) as Student | null;
+  const settings = useAppStore(state => state.settings);
 
   if (!currentUser) return null;
 
-  const currentXp = currentUser.xp;
-  const currentLevel = currentUser.petLevel;
-  const thresholds = [0, 100, 300, 600, 1000];
-  const nextLevel = currentLevel + 1;
-  const requiredXp = thresholds[currentLevel] || 1000;
-  const pointsNeeded = Math.max(0, requiredXp - currentXp);
+  const currentLevel = currentUser.petLevel || 1;
+  const feedCount = currentUser.petFeedCount || 0;
+  const { nextLevel, feedingsNeeded } = getFeedingsNeededForNextLevel(feedCount, currentLevel, settings.globalEvolutions);
 
   const badges = [
     { id: 'first_login', name: 'Mới Nhập Môn', description: 'Đăng nhập lần đầu tiên', icon: <Star size={24} />, color: 'bg-yellow-100 text-yellow-600 border-yellow-200', achieved: true },
@@ -59,7 +58,7 @@ export default function Achievements() {
           <p className="text-[#1E40AF] font-bold text-base leading-relaxed">
             {currentLevel >= 5 
               ? `Tuyệt vời! Pet của bạn đã đạt cấp độ tối đa (Cấp 5). Bạn và Pet đã xuất sắc hoàn thành mọi thử thách!`
-              : `Tuyệt lắm! Pet của bạn đang tiến rất gần đến cấp độ ${nextLevel}. Chỉ cần cố gắng đạt thêm ${pointsNeeded} điểm nữa thôi là Pet sẽ nâng cấp. Hãy tiếp tục cố gắng mỗi ngày để nâng cấp Pet bạn nhé!`
+              : `Tuyệt lắm! Pet của bạn đang dần đến cấp độ ${nextLevel}. Hãy tiếp tục cho ăn thêm ${feedingsNeeded} lần nữa để Pet được nâng cấp. Hãy tiếp tục cố gắng mỗi ngày để Pet nâng cấp tiến hoá nhé!`
             }
           </p>
         </div>

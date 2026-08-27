@@ -4,7 +4,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { getEmbedUrl } from '../../utils/embed';
 
 export default function MiniGame() {
-  const { miniGames } = useAppStore();
+  const { miniGames, playMiniGameReward } = useAppStore();
   const [activeGameUrl, setActiveGameUrl] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [score, setScore] = useState(0);
@@ -12,6 +12,7 @@ export default function MiniGame() {
   const startGame = () => {
     setIsPlaying(true);
     setScore(0);
+    playMiniGameReward();
     // Dummy game logic
     const interval = setInterval(() => {
       setScore(s => s + Math.floor(Math.random() * 10) + 1);
@@ -19,7 +20,7 @@ export default function MiniGame() {
     setTimeout(() => {
       clearInterval(interval);
       setIsPlaying(false);
-      alert('Bạn đã đạt được ' + score + ' điểm!');
+      alert(`Bạn đã hoàn thành trò chơi và đạt ${score} điểm! Pet đã được cộng +20% No và +20% Vui vẻ! 🎉`);
     }, 10000);
   };
 
@@ -72,7 +73,11 @@ export default function MiniGame() {
                 <h3 className="text-xl font-black text-[#1E3A8A] mb-2">{game.title}</h3>
                 <p className="text-sm text-[#64748B] font-medium mb-4 line-clamp-2 flex-1">{game.description}</p>
                 <button 
-                  onClick={() => setActiveGameUrl(game.url)}
+                  onClick={() => {
+                    playMiniGameReward();
+                    alert("🎉 Bắt đầu chơi! Pet đã được cộng +20% No và +20% Vui vẻ!");
+                    setActiveGameUrl(game.url);
+                  }}
                   className="w-full py-3 bg-[#3B82F6] text-white font-black rounded-xl hover:bg-[#2563EB] transition-colors"
                 >
                   CHƠI NGAY

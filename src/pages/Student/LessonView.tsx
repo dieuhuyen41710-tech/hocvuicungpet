@@ -15,7 +15,7 @@ export default function LessonView() {
   const lesson = lessons.find(l => l.id === id);
   const isCompleted = lesson ? completedLessons.includes(lesson.id) : false;
   
-  const [activeTab, setActiveTab] = useState<'VIDEO' | 'CONTENT' | 'QUIZ' | 'GAME'>('VIDEO');
+  const [activeTab, setActiveTab] = useState<'VIDEO' | 'QUIZ' | 'GAME'>('VIDEO');
   const [quizStarted, setQuizStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, any>>({});
@@ -29,6 +29,8 @@ export default function LessonView() {
     ? attachedTest.questions 
     : mockQuestions.filter(q => q.lessonId === lesson.id);
 
+  const hasQuestions = lessonQuestions.length > 0;
+
   const handleCompleteLesson = () => {
     if (!isCompleted) {
       completeLesson(lesson.id);
@@ -36,7 +38,9 @@ export default function LessonView() {
       addPointsAndXP(reward.points, reward.xp);
       alert(`Chúc mừng! Bạn nhận được ${reward.points} điểm và ${reward.xp} XP`);
     }
-    setActiveTab('QUIZ');
+    if (hasQuestions) {
+      setActiveTab('QUIZ');
+    }
   };
 
   const handleAnswer = (questionId: string, value: any) => {
@@ -97,18 +101,14 @@ export default function LessonView() {
            >
              <PlayCircle size={24} strokeWidth={3} /> VIDEO BÀI GIẢNG
            </button>
-           <button 
-             onClick={() => setActiveTab('CONTENT')}
-             className={clsx("flex-1 py-4 font-black flex items-center justify-center gap-2 transition-all border-r-4 border-[#DBEAFE]", activeTab === 'CONTENT' ? "bg-white text-[#2563EB] shadow-inner" : "text-[#94A3B8] hover:bg-white hover:text-[#3B82F6]")}
-           >
-             <BookOpen size={24} strokeWidth={3} /> NỘI DUNG
-           </button>
-           <button 
-             onClick={() => setActiveTab('QUIZ')}
-             className={clsx("flex-1 py-4 font-black flex items-center justify-center gap-2 transition-all", activeTab === 'QUIZ' ? "bg-white text-[#2563EB] shadow-inner" : "text-[#94A3B8] hover:bg-white hover:text-[#3B82F6]", lesson.gameUrl && "border-r-4 border-[#DBEAFE]")}
-           >
-             <CheckCircle size={24} strokeWidth={3} /> LUYỆN TẬP
-           </button>
+           {hasQuestions && (
+             <button 
+               onClick={() => setActiveTab('QUIZ')}
+               className={clsx("flex-1 py-4 font-black flex items-center justify-center gap-2 transition-all", activeTab === 'QUIZ' ? "bg-white text-[#2563EB] shadow-inner" : "text-[#94A3B8] hover:bg-white hover:text-[#3B82F6]", lesson.gameUrl && "border-r-4 border-[#DBEAFE]")}
+             >
+               <CheckCircle size={24} strokeWidth={3} /> LUYỆN TẬP
+             </button>
+           )}
            {lesson.gameUrl && (
              <button 
                onClick={() => setActiveTab('GAME')}

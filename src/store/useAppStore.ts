@@ -62,6 +62,7 @@ interface AppState {
     happinessAmount: number,
     cost: number,
   ) => void;
+  playMiniGameReward: () => void;
   addPointsAndXP: (points: number, xp: number) => void;
   selectPet: (petId: string, petName: string) => void;
   resumePet: (instanceId: string) => void;
@@ -307,6 +308,52 @@ export const useAppStore = create<AppState>()(
                 students,
               };
             }
+          }
+          return state;
+        }),
+
+      playMiniGameReward: () =>
+        set((state) => {
+          const user = state.currentUser;
+          if (user && (user.role === "STUDENT" || user.role === "GUEST")) {
+            const student = user as Student;
+            const newHunger = Math.min(100, (student.petHunger || 0) + 20);
+            const newHappiness = Math.min(100, (student.petHappiness || 0) + 20);
+
+            let updatedOwnedPets = student.ownedPets || [];
+            if (student.currentPetId) {
+              updatedOwnedPets = updatedOwnedPets.map(p => {
+                if (p.id === student.currentPetId) {
+                  return {
+                    ...p,
+                    hunger: newHunger,
+                    happiness: newHappiness
+                  };
+                }
+                return p;
+              });
+            } else if (updatedOwnedPets.length > 0) {
+              updatedOwnedPets[0] = {
+                ...updatedOwnedPets[0],
+                hunger: newHunger,
+                happiness: newHappiness
+              };
+            }
+
+            const updatedUser = {
+              ...student,
+              petHunger: newHunger,
+              petHappiness: newHappiness,
+              ownedPets: updatedOwnedPets
+            };
+
+            const students = state.students.map(s => s.id === updatedUser.id ? (updatedUser as Student) : s);
+            setDoc(doc(db, 'students', updatedUser.id), updatedUser, { merge: true }).catch(() => {});
+
+            return {
+              currentUser: updatedUser as any,
+              students,
+            };
           }
           return state;
         }),
