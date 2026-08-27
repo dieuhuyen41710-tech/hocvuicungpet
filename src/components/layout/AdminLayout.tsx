@@ -15,6 +15,7 @@ export default function AdminLayout() {
   const navItems = [
     { to: '/admin', icon: <Home size={28} />, label: 'Tổng quan' },
     { to: '/admin/users', icon: <Users size={28} />, label: 'Người dùng' },
+    { to: '/admin/subjects', icon: <span className="text-2xl font-bold">📖</span>, label: 'Môn học' },
     { to: '/admin/maps', icon: <span className="text-2xl font-bold">🗺️</span>, label: 'Bản đồ học tập' },
     { to: '/admin/lessons', icon: <span className="text-2xl font-bold">📚</span>, label: 'Bài học' },
     { to: '/admin/tests', icon: <span className="text-2xl font-bold">📝</span>, label: 'Đề kiểm tra' },

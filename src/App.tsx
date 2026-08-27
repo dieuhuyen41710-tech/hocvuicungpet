@@ -43,6 +43,7 @@ import AdminLessons from './pages/Admin/Lessons';
 import AdminTests from './pages/Admin/Tests';
 import AdminPets from './pages/Admin/Pets';
 import AdminMailbox from './pages/Admin/Mailbox';
+import AdminSubjects from './pages/Admin/Subjects';
 
 export default function App() {
   return (
@@ -85,6 +86,7 @@ export default function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsers />} />
+            <Route path="subjects" element={<AdminSubjects />} />
             <Route path="maps" element={<AdminMaps />} />
             <Route path="lessons" element={<AdminLessons />} />
             <Route path="tests" element={<AdminTests />} />

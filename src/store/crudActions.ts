@@ -158,4 +158,35 @@ export const createCrudActions = (set: any) => ({
       handleFirestoreError(error, OperationType.DELETE, 'tests');
     }
   },
+
+  addSubject: async (subject: any) => {
+    try {
+      await setDoc(doc(db, 'subjects', subject.id), subject);
+      set((state: any) => ({ subjects: [...(state.subjects || []), subject] }));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'subjects');
+    }
+  },
+  updateSubject: async (id: string, data: any) => {
+    try {
+      await updateDoc(doc(db, 'subjects', id), data);
+      set((state: any) => ({
+        subjects: (state.subjects || []).map((s: any) =>
+          s.id === id ? { ...s, ...data } : s,
+        ),
+      }));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, 'subjects');
+    }
+  },
+  deleteSubject: async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'subjects', id));
+      set((state: any) => ({
+        subjects: (state.subjects || []).filter((s: any) => s.id !== id),
+      }));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, 'subjects');
+    }
+  },
 });
