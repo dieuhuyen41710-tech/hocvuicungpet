@@ -18,6 +18,34 @@ export default function Mailbox() {
 
   const inboxMessages = messages.filter(m => m.receiverId === currentUser?.id && !m.isArchived);
 
+  const isGuest = !currentUser || currentUser.role === 'GUEST';
+
+  if (isGuest) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6 flex-1 w-full h-full py-12 px-4">
+        <div className="bg-white p-8 rounded-[32px] shadow-2xl border-4 border-[#F59E0B] text-center space-y-6 relative overflow-hidden">
+          <div className="w-24 h-24 bg-[#FEF3C7] rounded-full flex items-center justify-center mx-auto border-4 border-[#F59E0B] shadow-inner text-4xl">
+            🔒
+          </div>
+          <h1 className="text-3xl font-black text-[#D97706] uppercase tracking-wide">Hòm Thư Riêng Tư</h1>
+          <div className="bg-[#FFFBEB] p-6 rounded-2xl border-2 border-[#FDE68A] text-[#B45309] font-bold text-base leading-relaxed text-left">
+            Tính năng hòm thư là nơi trao đổi riêng tư và chỉ dành cho các tài khoản chính thức được cấp bởi quản trị viên. 
+            <br/><br/>
+            👉 <strong>Lưu ý:</strong> Chế độ Khách không được phép sử dụng tính năng này. Vui lòng liên hệ Quản trị viên để được cấp tài khoản chính thức nhằm trao đổi với giáo viên và quản trị!
+          </div>
+          <div className="pt-2">
+            <a 
+              href="/login" 
+              className="inline-block py-4 px-8 bg-gradient-to-r from-[#F59E0B] to-[#D97706] text-white font-black rounded-2xl shadow-[0_6px_0_#B45309] hover:translate-y-1 hover:shadow-none transition-all uppercase tracking-wider text-base"
+            >
+              Đăng nhập tài khoản chính thức
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) {

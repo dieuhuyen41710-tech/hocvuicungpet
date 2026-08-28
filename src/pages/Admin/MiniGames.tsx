@@ -22,7 +22,8 @@ export default function AdminMiniGames() {
         title: formData.title,
         url: formData.url,
         description: formData.description,
-        thumbnail: formData.thumbnail
+        thumbnail: formData.thumbnail,
+        mapNodeId: formData.mapNodeId
       });
       if (formData.lessonId) {
         updateLesson(formData.lessonId, { gameUrl: formData.url });
@@ -34,6 +35,7 @@ export default function AdminMiniGames() {
         url: formData.url || '',
         description: formData.description || '',
         thumbnail: formData.thumbnail || '',
+        mapNodeId: formData.mapNodeId || '',
         createdAt: new Date().toISOString()
       };
       addMiniGame(newGame);

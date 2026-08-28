@@ -184,9 +184,9 @@ export interface MiniGame {
   url: string; // iframe URL or file path
   description?: string;
   thumbnail?: string;
+  mapNodeId?: string;
+  subjectId?: string;
   createdAt: string;
-
-
 }
 
 export interface SystemSettings {

@@ -44,8 +44,17 @@ import AdminTests from './pages/Admin/Tests';
 import AdminPets from './pages/Admin/Pets';
 import AdminMailbox from './pages/Admin/Mailbox';
 import AdminSubjects from './pages/Admin/Subjects';
+import { useAppStore } from './store/useAppStore';
 
 export default function App() {
+  useEffect(() => {
+    const visited = sessionStorage.getItem('app_visited');
+    if (!visited) {
+      sessionStorage.setItem('app_visited', 'true');
+      useAppStore.getState().incrementVisitCount();
+    }
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>

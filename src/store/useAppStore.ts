@@ -43,7 +43,11 @@ interface AppState {
   studentTasks: StudentTask[];
   spaces3D: Space3D[];
   miniGames: MiniGame[];
+  visitCount: number;
+  ratings: { id: string; stars: number; comment?: string; createdAt: string; userName?: string }[];
   
+  incrementVisitCount: () => void;
+  addRating: (stars: number, comment?: string) => void;
   addSpace3D: (space: Space3D) => void;
   updateSpace3D: (id: string, space: Partial<Space3D>) => void;
   deleteSpace3D: (id: string) => void;
@@ -109,7 +113,19 @@ export const useAppStore = create<AppState>()(
       studentTasks: [],
       spaces3D: [],
       miniGames: mockMiniGames,
-      
+      visitCount: 0,
+      ratings: [],
+      incrementVisitCount: () => set((state) => ({ visitCount: (state.visitCount || 0) + 1 })),
+      addRating: (stars, comment) => set((state) => ({
+        ratings: [{
+          id: Date.now().toString(),
+          stars,
+          comment,
+          createdAt: new Date().toISOString(),
+          userName: state.currentUser?.fullName || 'Khách'
+        }, ...state.ratings]
+      })),
+
       addSpace3D: (space) => set((state) => ({ spaces3D: [...state.spaces3D, space] })),
       updateSpace3D: (id, space) => set((state) => ({ spaces3D: state.spaces3D.map(s => s.id === id ? { ...s, ...space } : s) })),
       deleteSpace3D: (id) => set((state) => ({ spaces3D: state.spaces3D.filter(s => s.id !== id) })),
@@ -171,7 +187,7 @@ export const useAppStore = create<AppState>()(
             id: "guest",
             username: "guest",
             fullName: "Khách",
-            role: "STUDENT", // Guest is essentially a student without persistent login
+            role: "GUEST", // Guest role for restricted features like mailbox
             class: "Chưa có",
             points: 50,
             xp: 0,

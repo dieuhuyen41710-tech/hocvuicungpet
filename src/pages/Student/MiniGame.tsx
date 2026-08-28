@@ -4,10 +4,17 @@ import { useAppStore } from '../../store/useAppStore';
 import { getEmbedUrl } from '../../utils/embed';
 
 export default function MiniGame() {
-  const { miniGames, playMiniGameReward } = useAppStore();
+  const { miniGames, mapNodes, lessons, playMiniGameReward } = useAppStore();
   const [activeGameUrl, setActiveGameUrl] = useState<string | null>(null);
+  const [selectedMapId, setSelectedMapId] = useState<string>('ALL');
   const [isPlaying, setIsPlaying] = useState(false);
   const [score, setScore] = useState(0);
+
+  const filteredGames = (miniGames || []).filter(g => {
+    if (selectedMapId === 'ALL') return true;
+    const attachedLesson = (lessons || []).find(l => l.gameUrl === g.url);
+    return g.mapNodeId === selectedMapId || attachedLesson?.mapNodeId === selectedMapId;
+  });
 
   const startGame = () => {
     setIsPlaying(true);
@@ -57,8 +64,42 @@ export default function MiniGame() {
           </div>
         )}
 
+        {/* Map Classification Filter Tags */}
+        <div className="w-full mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-sm font-black text-[#1E3A8A] uppercase tracking-wider flex items-center gap-1.5">
+              🗺️ Phân loại theo bản đồ tri thức:
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setSelectedMapId('ALL')}
+              className={`px-4 py-2 rounded-xl font-bold text-sm transition-all border-2 ${
+                selectedMapId === 'ALL'
+                  ? 'bg-[#3B82F6] text-white border-[#2563EB] shadow-md'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-[#3B82F6]'
+              }`}
+            >
+              🌟 Tất cả trò chơi
+            </button>
+            {(mapNodes || []).map(node => (
+              <button
+                key={node.id}
+                onClick={() => setSelectedMapId(node.id)}
+                className={`px-4 py-2 rounded-xl font-bold text-sm transition-all border-2 ${
+                  selectedMapId === node.id
+                    ? 'bg-[#3B82F6] text-white border-[#2563EB] shadow-md'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-[#3B82F6]'
+                }`}
+              >
+                📍 {node.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-          {(miniGames || []).map(game => (
+          {(filteredGames || []).map(game => (
             <div key={game.id} className="bg-white rounded-[24px] border-4 border-[#E0F2FE] hover:border-[#3B82F6] transition-colors group cursor-pointer text-left shadow-sm flex flex-col overflow-hidden">
               {game.thumbnail ? (
                 <div className="w-full h-44 relative bg-gray-100 overflow-hidden border-b-4 border-[#E0F2FE]">

@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { useAppStore } from "../../store/useAppStore";
 import { Student } from "../../types";
-import { Trophy, Users, BookOpen, Star } from "lucide-react";
+import { Trophy, Users, BookOpen, Star, CheckCircle2, Flame } from "lucide-react";
 import cutePetsImg from "../../assets/images/cute_pets_banner_1787838175550.jpg";
 import bunnyImg from "../../assets/images/pixar_bunny_avatar_1787838459749.jpg";
 import catImg from "../../assets/images/pixar_cat_avatar_1787838476517.jpg";
@@ -13,6 +13,24 @@ export default function StudentHome() {
     (state) => state.currentUser,
   ) as Student | null;
   const settings = useAppStore((state) => state.settings);
+  const visitCount = useAppStore((state) => state.visitCount);
+  const ratings = useAppStore((state) => state.ratings);
+  const addRating = useAppStore((state) => state.addRating);
+
+  const [selectedStars, setSelectedStars] = useState<number>(5);
+  const [comment, setComment] = useState('');
+  const [successMsg, setSuccessMsg] = useState(false);
+
+  const totalRatings = (ratings || []).length;
+  const avgRating = totalRatings > 0 ? (ratings.reduce((acc, r) => acc + r.stars, 0) / totalRatings).toFixed(1) : '5.0';
+
+  const handleRatingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    addRating(selectedStars, comment);
+    setComment('');
+    setSuccessMsg(true);
+    setTimeout(() => setSuccessMsg(false), 4000);
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 flex-1 w-full h-full pb-10 relative overflow-hidden">
@@ -127,11 +145,124 @@ export default function StudentHome() {
               </div>
               <div>
                 <h3 className="text-lg font-black text-[#065F46] uppercase">
-                  Lượt truy cập
+                  Lượt truy cập chính xác
                 </h3>
-                <p className="text-3xl font-black text-[#059669]">1,284</p>
+                <p className="text-3xl font-black text-[#059669]">{visitCount.toLocaleString()}</p>
               </div>
             </div>
+          </div>
+
+          {/* Website Usefulness Rating Widget */}
+          <div className="bg-white rounded-[32px] p-8 shadow-xl border-4 border-[#3B82F6] relative overflow-hidden">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-2xl font-black text-[#1E3A8A] flex items-center gap-2">
+                <Star className="text-[#F59E0B] fill-[#F59E0B]" size={28} /> Đánh Giá Website
+              </h3>
+              <div className="flex items-center gap-2 bg-[#EFF6FF] px-3 py-1.5 rounded-2xl border-2 border-[#BFDBFE]">
+                <span className="text-2xl font-black text-[#1D4ED8]">{avgRating}</span>
+                <div className="flex flex-col text-left">
+                  <div className="flex text-[#F59E0B]">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} size={12} className="fill-[#F59E0B]" />
+                    ))}
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-500">{totalRatings} lượt đánh giá</span>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-sm font-medium text-gray-600 mb-4">
+              Bạn đánh giá mức độ hữu ích của website học tập này như thế nào? Hãy cho chúng tôi biết ý kiến của bạn nhé!
+            </p>
+
+            {/* Rating Breakdown Statistics */}
+            <div className="bg-[#F8FAFC] p-4 rounded-2xl border-2 border-gray-100 mb-6 space-y-2">
+              <h4 className="text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Thống kê chi tiết các mức độ đánh giá:</h4>
+              {[5, 4, 3, 2, 1].map((s) => {
+                const count = (ratings || []).filter(r => r.stars === s).length;
+                const percentage = totalRatings > 0 ? Math.round((count / totalRatings) * 100) : 0;
+                return (
+                  <div key={s} className="flex items-center gap-3 text-xs font-bold">
+                    <div className="w-16 flex items-center gap-1 text-[#F59E0B]">
+                      <span>{s}</span> <Star size={12} className="fill-[#F59E0B]" />
+                    </div>
+                    <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden relative">
+                      <div className="absolute top-0 left-0 bottom-0 bg-[#3B82F6] rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
+                    </div>
+                    <div className="w-20 text-right text-gray-600 font-black">
+                      {count} lượt ({percentage}%)
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {successMsg && (
+              <div className="bg-[#ECFDF5] border-2 border-[#6EE7B7] text-[#047857] p-3 rounded-xl font-bold mb-4 flex items-center gap-2 text-sm animate-fade-in">
+                <CheckCircle2 size={18} /> Cảm ơn bạn đã đánh giá mức độ hữu ích của website!
+              </div>
+            )}
+
+            <form onSubmit={handleRatingSubmit} className="space-y-4">
+              <div className="space-y-2">
+                {[
+                  { stars: 5, label: '5 sao - Cực kì hữu ích', isHot: true },
+                  { stars: 4, label: '4 sao - Rất hữu ích', isHot: true },
+                  { stars: 3, label: '3 sao - Hữu ích', isHot: false },
+                  { stars: 2, label: '2 sao - Bình thường', isHot: false },
+                  { stars: 1, label: '1 sao - Không hữu ích', isHot: false },
+                ].map((item) => (
+                  <label
+                    key={item.stars}
+                    onClick={() => setSelectedStars(item.stars)}
+                    className={`flex items-center justify-between p-3 rounded-2xl border-3 cursor-pointer transition-all ${
+                      selectedStars === item.stars
+                        ? 'bg-[#EFF6FF] border-[#3B82F6] shadow-sm'
+                        : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="ratingStars"
+                        checked={selectedStars === item.stars}
+                        onChange={() => setSelectedStars(item.stars)}
+                        className="w-4 h-4 text-[#3B82F6]"
+                      />
+                      <div className="flex text-[#F59E0B]">
+                        {[...Array(item.stars)].map((_, i) => (
+                          <Star key={i} size={16} className="fill-[#F59E0B]" />
+                        ))}
+                      </div>
+                      <span className="font-bold text-gray-800 text-sm">{item.label}</span>
+                    </div>
+
+                    {item.isHot && (
+                      <span className="bg-red-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full animate-bounce shadow-md flex items-center gap-1">
+                        <Flame size={12} className="fill-white" /> HOT
+                      </span>
+                    )}
+                  </label>
+                ))}
+              </div>
+
+              <div>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Nhập góp ý hoặc nhận xét của bạn (không bắt buộc)..."
+                  className="w-full p-3 rounded-2xl border-2 border-gray-200 text-sm font-medium focus:border-[#3B82F6] outline-none resize-none"
+                  rows={2}
+                ></textarea>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-[#3B82F6] text-white font-black rounded-2xl hover:bg-[#2563EB] shadow-[0_4px_0_#1D4ED8] hover:translate-y-0.5 transition-all text-sm uppercase tracking-wider"
+              >
+                Gửi đánh giá ngay
+              </button>
+            </form>
           </div>
 
           {/* Leaderboard - Panda Pet Corner & Amber Border */}
