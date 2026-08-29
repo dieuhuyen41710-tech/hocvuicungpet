@@ -69,6 +69,7 @@ export interface Lesson {
   mapNodeId: string;
   name: string;
   description: string;
+  content?: string;
   grade?: string;
   videoUrl?: string;
   gameUrl?: string;

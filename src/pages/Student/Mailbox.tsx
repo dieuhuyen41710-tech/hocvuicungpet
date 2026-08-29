@@ -5,7 +5,7 @@ import { Mail, Send, Inbox, AlertCircle } from 'lucide-react';
 import pandaImg from '../../assets/images/pixar_panda_avatar_1787838510229.jpg';
 
 export default function Mailbox() {
-  const currentUser = useAppStore((state) => state.currentUser) as Student | null;
+  const currentUser = useAppStore((state) => state.currentUser) as any;
   const { messages, sendMessage, markMessageRead, users } = useAppStore();
   const teachers = users.filter(u => u.role === 'TEACHER');
   

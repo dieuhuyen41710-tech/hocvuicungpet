@@ -8,6 +8,7 @@ import { Student } from "../../types";
 import FloatingPet from "../FloatingPet";
 import StudyTimer from "../StudyTimer";
 import PetAIAssistant from "../PetAIAssistant";
+import LevelUpModal from "../LevelUpModal";
 
 export default function StudentLayout() {
   const { settings, logout, currentUser } = useAppStore();
@@ -227,6 +228,7 @@ export default function StudentLayout() {
           </button>
         </nav>
       </div>
+      <LevelUpModal />
     </div>
       </div>
   );

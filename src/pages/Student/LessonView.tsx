@@ -15,7 +15,7 @@ export default function LessonView() {
   const lesson = lessons.find(l => l.id === id);
   const isCompleted = lesson ? completedLessons.includes(lesson.id) : false;
   
-  const [activeTab, setActiveTab] = useState<'VIDEO' | 'QUIZ' | 'GAME'>('VIDEO');
+  const [activeTab, setActiveTab] = useState<'VIDEO' | 'CONTENT' | 'QUIZ' | 'GAME'>('VIDEO');
   const [quizStarted, setQuizStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, any>>({});
@@ -101,6 +101,12 @@ export default function LessonView() {
            >
              <PlayCircle size={24} strokeWidth={3} /> VIDEO BÀI GIẢNG
            </button>
+           <button 
+             onClick={() => setActiveTab('CONTENT')}
+             className={clsx("flex-1 py-4 font-black flex items-center justify-center gap-2 transition-all border-r-4 border-[#DBEAFE]", activeTab === 'CONTENT' ? "bg-white text-[#2563EB] shadow-inner" : "text-[#94A3B8] hover:bg-white hover:text-[#3B82F6]")}
+           >
+             <BookOpen size={24} strokeWidth={3} /> ĐỌC NỘI DUNG
+           </button>
            {hasQuestions && (
              <button 
                onClick={() => setActiveTab('QUIZ')}
@@ -153,14 +159,20 @@ export default function LessonView() {
 
           {activeTab === 'CONTENT' && (
             <div className="animate-fade-in space-y-8 max-w-5xl mx-auto w-full">
-               <div className="bg-white p-8 rounded-[32px] border-4 border-[#E2E8F0] shadow-sm prose prose-sky max-w-none prose-p:text-[#475569] prose-p:font-medium prose-headings:text-[#1E3A8A] prose-headings:font-black">
-                  <h3>Kiến thức trọng tâm</h3>
-                  <p>Đây là phần nội dung lý thuyết của bài học. Trong thực tế, dữ liệu này sẽ được lấy từ Knowledge Units của bài học.</p>
-                  <ul>
-                    <li>Hiểu khái niệm cơ bản.</li>
-                    <li>Nắm vững công thức.</li>
-                    <li>Áp dụng vào bài tập.</li>
-                  </ul>
+               <div className="bg-white p-8 rounded-[32px] border-4 border-[#E2E8F0] shadow-sm space-y-4">
+                  <h3 className="text-2xl font-black text-[#1E3A8A] border-b-2 border-gray-100 pb-3 flex items-center gap-3">
+                    <BookOpen className="text-blue-600" size={28} />
+                    Kiến thức trọng tâm: {lesson.name}
+                  </h3>
+                  {lesson.content ? (
+                    <div className="whitespace-pre-wrap text-base font-medium text-gray-700 leading-relaxed pt-2">
+                      {lesson.content}
+                    </div>
+                  ) : (
+                    <div className="py-12 text-center text-gray-400 font-bold">
+                      Bài học này chưa có nội dung lý thuyết chi tiết được cập nhật bởi giáo viên.
+                    </div>
+                  )}
                </div>
 
                <div className="pt-8 flex justify-center border-t-4 border-dashed border-[#E2E8F0]">

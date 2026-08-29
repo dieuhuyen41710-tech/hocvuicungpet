@@ -114,6 +114,17 @@ export default function PetCare() {
                    <p className="text-sm text-[#1E3A8A] font-medium">Mua thức ăn bằng Điểm để tăng độ no và vui vẻ cho Pet nhé!</p>
                  </div>
 
+                 <div className="bg-[#FFFBEB] p-5 rounded-3xl border-2 border-[#FDE68A] space-y-3">
+                   <h4 className="font-black text-[#92400E] flex items-center gap-2 text-base">
+                     <Star size={20} className="text-[#F59E0B] fill-[#F59E0B]" /> Quy định về độ no, thời gian đói & Tiến hoá của Pet
+                   </h4>
+                   <ul className="text-xs font-bold text-[#78350F] space-y-2 list-disc pl-4">
+                     <li><strong>Thời gian đói:</strong> Độ no của Pet sẽ giảm <strong>10% sau mỗi 1 giờ</strong> hoặc sau mỗi bài học hoặc sau mỗi lần thực hiện nhiệm vụ / chơi game.</li>
+                     <li><strong>Trạng thái đói:</strong> Khi độ no chỉ còn <strong>30%</strong>, phím tắt Pet sẽ hiện thông báo: <em>"Pet đói rồi bạn ơi. Hãy cho Pet ăn nào"</em>. Học sinh cần sử dụng điểm thưởng kiếm được từ việc làm bài tập để mua thức ăn cho Pet.</li>
+                     <li><strong>Tiến hoá Pet:</strong> Số lần cho ăn để tiến hoá được quản lý và cài đặt trực tiếp bởi Quản trị viên (Admin), đảm bảo lộ trình phát triển của Pet theo đúng quy định hệ thống.</li>
+                   </ul>
+                 </div>
+
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {mockFoods.map(food => (
                       <div key={food.id} className="bg-white border-4 border-[#E2E8F0] rounded-[24px] p-5 flex flex-col items-center text-center shadow-sm hover:border-[#93C5FD] transition-all hover:-translate-y-1 hover:shadow-md">

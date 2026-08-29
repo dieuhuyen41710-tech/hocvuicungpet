@@ -17,6 +17,7 @@ export default function AdminLessons() {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    content: "",
     mapNodeId: mapNodes[0]?.id || "",
     rewardXp: 50,
     rewardPoints: 10,
@@ -50,6 +51,7 @@ export default function AdminLessons() {
     setFormData({
       name: "",
       description: "",
+      content: "",
       mapNodeId: mapNodes[0]?.id || "",
       rewardXp: 50,
       rewardPoints: 10,
@@ -67,6 +69,7 @@ export default function AdminLessons() {
     setFormData({
       name: lesson.name || lesson.title,
       description: lesson.description || "",
+      content: lesson.content || "",
       mapNodeId: lesson.mapNodeId || mapNodes[0]?.id || "",
       rewardXp: lesson.rewardXp || 50,
       rewardPoints: lesson.rewardPoints || 10,
@@ -300,14 +303,27 @@ export default function AdminLessons() {
           </div>
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">
-              Mô tả (Không bắt buộc)
+              Mô tả ngắn
             </label>
             <textarea
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#F59E0B] focus:outline-none h-20"
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#F59E0B] focus:outline-none h-16"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">
+              Nội dung Lý thuyết / Kiến thức trọng tâm (Hiển thị ở tab Đọc nội dung cho học sinh)
+            </label>
+            <textarea
+              value={formData.content}
+              onChange={(e) =>
+                setFormData({ ...formData, content: e.target.value })
+              }
+              placeholder="Nhập nội dung lý thuyết chi tiết, công thức, ví dụ..."
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#F59E0B] focus:outline-none h-36 font-medium text-gray-800"
             />
           </div>
 

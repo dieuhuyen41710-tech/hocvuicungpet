@@ -97,9 +97,6 @@ export default function StudentHome() {
                 <li>Chăm chỉ mỗi ngày để duy trì <strong>Chuỗi học</strong> rực lửa!</li>
                 <li>Nâng cấp Pet và mở khóa những vùng đất mới trên Bản đồ tri thức.</li>
               </ul>
-              <div className="bg-[#FFFBEB] p-4 rounded-2xl border-2 border-[#FDE68A] text-[#B45309] text-sm mt-4">
-                <strong>Miễn trừ trách nhiệm:</strong> Đây là nền tảng học tập demo. Nếu bạn truy cập bằng chế độ Khách, tiến trình của bạn sẽ không được lưu lại trên hệ thống.
-              </div>
             </div>
           </div>
 

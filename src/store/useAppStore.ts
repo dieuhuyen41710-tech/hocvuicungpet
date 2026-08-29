@@ -45,9 +45,11 @@ interface AppState {
   miniGames: MiniGame[];
   visitCount: number;
   ratings: { id: string; stars: number; comment?: string; createdAt: string; userName?: string }[];
+  levelUpInfo: { level: number; petName: string } | null;
   
   incrementVisitCount: () => void;
   addRating: (stars: number, comment?: string) => void;
+  clearLevelUpInfo: () => void;
   addSpace3D: (space: Space3D) => void;
   updateSpace3D: (id: string, space: Partial<Space3D>) => void;
   deleteSpace3D: (id: string) => void;
@@ -115,6 +117,7 @@ export const useAppStore = create<AppState>()(
       miniGames: mockMiniGames,
       visitCount: 0,
       ratings: [],
+      levelUpInfo: null,
       incrementVisitCount: () => set((state) => ({ visitCount: (state.visitCount || 0) + 1 })),
       addRating: (stars, comment) => set((state) => ({
         ratings: [{
@@ -125,6 +128,7 @@ export const useAppStore = create<AppState>()(
           userName: state.currentUser?.fullName || 'Khách'
         }, ...state.ratings]
       })),
+      clearLevelUpInfo: () => set({ levelUpInfo: null }),
 
       addSpace3D: (space) => set((state) => ({ spaces3D: [...state.spaces3D, space] })),
       updateSpace3D: (id, space) => set((state) => ({ spaces3D: state.spaces3D.map(s => s.id === id ? { ...s, ...space } : s) })),
@@ -199,7 +203,7 @@ export const useAppStore = create<AppState>()(
             petEnergy: 100,
             lastLogin: new Date().toISOString(),
             createdAt: new Date().toISOString(),
-          } as Student,
+          } as any,
           completedLessons: [],
         }),
 
@@ -281,6 +285,8 @@ export const useAppStore = create<AppState>()(
             if (student.points >= cost) {
               const currentFeedCount = (student.petFeedCount || 0) + 1;
               const newLevel = calculatePetLevelByFeedings(currentFeedCount, state.settings.globalEvolutions);
+              const oldLevel = student.petLevel || 1;
+              const isLevelUp = newLevel > oldLevel;
 
               let updatedOwnedPets = student.ownedPets || [];
               if (student.currentPetId) {
@@ -322,6 +328,7 @@ export const useAppStore = create<AppState>()(
               return {
                 currentUser: updatedUser as any,
                 students,
+                levelUpInfo: isLevelUp ? { level: newLevel, petName: student.petName || 'Pet' } : state.levelUpInfo
               };
             }
           }
@@ -382,6 +389,8 @@ export const useAppStore = create<AppState>()(
             const newXp = student.xp + xp;
             const newPoints = student.points + points;
             const newLevel = calculatePetLevel(newXp, newPoints);
+            const oldLevel = student.petLevel || 1;
+            const isLevelUp = newLevel > oldLevel;
 
             let updatedOwnedPets = student.ownedPets || [];
             if (student.currentPetId) {
@@ -401,6 +410,7 @@ export const useAppStore = create<AppState>()(
                 petLevel: newLevel,
                 ownedPets: updatedOwnedPets,
               },
+              levelUpInfo: isLevelUp ? { level: newLevel, petName: student.petName || 'Pet' } : state.levelUpInfo
             };
           }
           return state;

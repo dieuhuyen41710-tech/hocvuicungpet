@@ -34,7 +34,13 @@ export default function FloatingPet({ onOpenAI }: { onOpenAI?: () => void }) {
   // Helper messages logic
   const getPetMessages = () => {
     const messages = [];
-    if (currentUser.petHunger < 40) {
+    if (currentUser.petHunger <= 30) {
+      messages.push({
+        icon: <Utensils size={16} className="text-orange-500" />,
+        text: "Pet đói rồi bạn ơi. Hãy cho Pet ăn nào",
+        color: "bg-orange-50 text-orange-700 border-orange-200 animate-pulse",
+      });
+    } else if (currentUser.petHunger < 40) {
       messages.push({
         icon: <Utensils size={16} className="text-orange-500" />,
         text: "Đói bụng quá, cho tớ ăn nhé!",
@@ -151,9 +157,12 @@ export default function FloatingPet({ onOpenAI }: { onOpenAI?: () => void }) {
           e.stopPropagation();
           setIsOpen(!isOpen);
         }}
-        className={`w-full h-full bg-white rounded-full shadow-2xl border-4 flex items-center justify-center overflow-hidden hover:scale-110 transition-transform ${isOpen ? "border-[#3B82F6] shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "border-[#FDE68A]"}`}
+        className={`w-full h-full bg-white rounded-full shadow-2xl border-4 flex items-center justify-center overflow-hidden hover:scale-110 transition-transform relative ${isOpen ? "border-[#3B82F6] shadow-[0_0_15px_rgba(59,130,246,0.5)]" : "border-[#FDE68A]"}`}
       >
         <PetAvatar src={petImageUrl} className="w-full h-full text-4xl md:text-6xl animate-pulse" imgClassName="w-full h-full object-cover" />
+        {currentUser.petHunger <= 30 && (
+          <span className="absolute top-0 right-0 w-5 h-5 bg-orange-500 rounded-full border-2 border-white flex items-center justify-center text-[10px] text-white font-black animate-bounce">!</span>
+        )}
       </button>
     </motion.div>
   );
