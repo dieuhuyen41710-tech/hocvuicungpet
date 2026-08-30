@@ -29,10 +29,10 @@ export default function StudentLayout() {
 
   const navItems = [
     { to: "/student", icon: "🏠", label: "Trang chủ" },
-    { to: "/student/map", icon: "🗺️", label: "Bản đồ" },
     { to: "/student/dashboard", icon: "📚", label: "Nhiệm vụ" },
     { to: "/student/pet", icon: "🐾", label: "Chăm sóc Pet" },
     { to: "/student/pet-world", icon: "🌍", label: "Thế giới Pet" },
+    { to: "/student/map", icon: "🗺️", label: "Bản đồ" },
     { to: "/student/tools", icon: "🧮", label: "Công cụ số" },
     { to: "/student/minigame", icon: "🎮", label: "Vui chơi" },
     { to: "/student/3d-viewer", icon: "🧊", label: "Không gian 3D" },

@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useAppStore } from "../../store/useAppStore";
 import { Student } from "../../types";
 import { Trophy, Users, BookOpen, Star, CheckCircle2, Flame } from "lucide-react";
+import { useNavigate } from "react-router";
+import PetAvatar from "../../components/PetAvatar";
 import cutePetsImg from "../../assets/images/cute_pets_banner_1787838175550.jpg";
 import bunnyImg from "../../assets/images/pixar_bunny_avatar_1787838459749.jpg";
 import catImg from "../../assets/images/pixar_cat_avatar_1787838476517.jpg";
@@ -16,10 +18,17 @@ export default function StudentHome() {
   const visitCount = useAppStore((state) => state.visitCount);
   const ratings = useAppStore((state) => state.ratings);
   const addRating = useAppStore((state) => state.addRating);
+  const pets = useAppStore((state) => state.pets);
+  const selectPet = useAppStore((state) => state.selectPet);
+  const students = useAppStore((state) => state.students);
+  const navigate = useNavigate();
 
   const [selectedStars, setSelectedStars] = useState<number>(5);
   const [comment, setComment] = useState('');
   const [successMsg, setSuccessMsg] = useState(false);
+  const [showPetModal, setShowPetModal] = useState(false);
+  const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
+  const [petNameInput, setPetNameInput] = useState("");
 
   const totalRatings = (ratings || []).length;
   const avgRating = totalRatings > 0 ? (ratings.reduce((acc, r) => acc + r.stars, 0) / totalRatings).toFixed(1) : '5.0';
@@ -30,6 +39,14 @@ export default function StudentHome() {
     setComment('');
     setSuccessMsg(true);
     setTimeout(() => setSuccessMsg(false), 4000);
+  };
+
+  const handleSelectPet = () => {
+    if (selectedPetId && petNameInput.trim()) {
+      selectPet(selectedPetId, petNameInput.trim());
+      setShowPetModal(false);
+      navigate('/student/pet');
+    }
   };
 
   return (
@@ -55,12 +72,28 @@ export default function StudentHome() {
               {settings.studentWelcomeSubtitle || "Hãy học tập chăm chỉ để nuôi Pet lớn khôn mỗi ngày bạn nhé!"}
             </p>
             {currentUser ? (
-              <div className="inline-block bg-white/20 backdrop-blur-md px-6 py-3 rounded-2xl border-2 border-white/30 font-black text-xl">
-                Xin chào, {currentUser.fullName}! 👋
+              <div className="flex flex-wrap items-center gap-4 mt-4">
+                <div className="inline-block bg-white/20 backdrop-blur-md px-6 py-3 rounded-2xl border-2 border-white/30 font-black text-xl">
+                  Xin chào, {currentUser.fullName}! 👋
+                </div>
+                <button
+                  onClick={() => setShowPetModal(true)}
+                  className="px-8 py-3.5 bg-yellow-400 hover:bg-yellow-300 text-yellow-950 font-black rounded-2xl shadow-[0_6px_0_#B45309] hover:translate-y-1 hover:shadow-[0_2px_0_#B45309] active:translate-y-2 active:shadow-none transition-all text-lg flex items-center gap-3 animate-bounce"
+                >
+                  🐾 Bắt đầu nuôi
+                </button>
               </div>
             ) : (
-              <div className="inline-block bg-white/20 backdrop-blur-md px-6 py-3 rounded-2xl border-2 border-white/30 font-black text-xl">
-                Xin chào Khách! Hãy khám phá vương quốc nhé.
+              <div className="flex flex-wrap items-center gap-4 mt-4">
+                <div className="inline-block bg-white/20 backdrop-blur-md px-6 py-3 rounded-2xl border-2 border-white/30 font-black text-xl">
+                  Xin chào Khách! Hãy khám phá vương quốc nhé.
+                </div>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="px-8 py-3.5 bg-yellow-400 hover:bg-yellow-300 text-yellow-950 font-black rounded-2xl shadow-[0_6px_0_#B45309] transition-all text-lg flex items-center gap-3"
+                >
+                  🔑 Đăng nhập ngay
+                </button>
               </div>
             )}
           </div>
@@ -131,6 +164,69 @@ export default function StudentHome() {
         </div>
 
         <div className="space-y-8 flex flex-col">
+          {/* Leaderboard - Panda Pet Corner & Amber Border */}
+          <div className="bg-white rounded-[32px] p-8 shadow-xl border-4 border-[#F59E0B] relative overflow-visible">
+            <div className="absolute -top-6 -right-4 w-20 h-20 bg-white rounded-full p-1 shadow-lg border-4 border-[#F59E0B] transform -rotate-6 hover:scale-110 transition-transform z-20 flex items-center justify-center overflow-hidden">
+              <img src={pandaImg} alt="Cute Panda" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            </div>
+            <h2 className="text-2xl font-black text-[#D97706] border-b-4 border-[#FEF9C3] pb-4 mb-6 flex items-center gap-3 pr-16">
+              <Trophy className="text-[#F59E0B]" size={32} /> Bảng Vàng Thành Tích
+            </h2>
+            <div className="space-y-4">
+              {(() => {
+                const topStudents = [...(students || [])]
+                  .filter(s => s.role === 'STUDENT')
+                  .sort((a, b) => {
+                    const levelA = a.petLevel || 1;
+                    const levelB = b.petLevel || 1;
+                    if (levelB !== levelA) return levelB - levelA;
+                    const xpA = a.xp || 0;
+                    const xpB = b.xp || 0;
+                    return xpB - xpA;
+                  })
+                  .slice(0, 3);
+
+                if (topStudents.length === 0) {
+                  return (
+                    <p className="text-center text-gray-400 font-bold py-4">Chưa có học sinh nào trên bảng vàng.</p>
+                  );
+                }
+
+                return topStudents.map((studentItem, index) => {
+                  const rank = index + 1;
+                  return (
+                    <div
+                      key={studentItem.id}
+                      className="flex items-center gap-4 bg-[#F8FAFC] p-4 rounded-2xl border-2 border-[#E2E8F0] hover:border-[#FCD34D] transition-colors"
+                    >
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-white ${
+                          rank === 1
+                            ? "bg-[#F59E0B] shadow-[0_4px_0_#D97706]"
+                            : rank === 2
+                              ? "bg-[#94A3B8] shadow-[0_4px_0_#64748B]"
+                              : "bg-[#D97706] shadow-[0_4px_0_#B45309]"
+                        }`}
+                      >
+                        {rank}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-bold text-[#1E3A8A]">{studentItem.fullName}</div>
+                        <div className="text-xs font-bold text-gray-400">🐾 Pet Cấp {studentItem.petLevel || 1}</div>
+                      </div>
+                      <div className="flex items-center gap-1 bg-[#FFFBEB] px-3 py-1 rounded-full border border-[#FDE68A]">
+                        <Star className="text-[#F59E0B] fill-[#F59E0B]" size={14} />
+                        <span className="font-black text-[#D97706] text-sm">
+                          {studentItem.xp || 0} XP
+                        </span>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+
           {/* Stats - Dog Pet Corner & Emerald Border */}
           <div className="bg-white rounded-[32px] p-6 shadow-xl border-4 border-[#10B981] flex items-center justify-between relative overflow-visible">
             <div className="absolute -top-6 -right-4 w-20 h-20 bg-white rounded-full p-1 shadow-lg border-4 border-[#10B981] transform rotate-6 hover:scale-110 transition-transform z-20 flex items-center justify-center overflow-hidden">
@@ -261,55 +357,75 @@ export default function StudentHome() {
               </button>
             </form>
           </div>
+        </div>
+      </div>
 
-          {/* Leaderboard - Panda Pet Corner & Amber Border */}
-          <div className="bg-white rounded-[32px] p-8 shadow-xl border-4 border-[#F59E0B] flex-1 relative overflow-visible">
-            <div className="absolute -top-6 -right-4 w-20 h-20 bg-white rounded-full p-1 shadow-lg border-4 border-[#F59E0B] transform -rotate-6 hover:scale-110 transition-transform z-20 flex items-center justify-center overflow-hidden">
-              <img src={pandaImg} alt="Cute Panda" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-            </div>
-            <h2 className="text-2xl font-black text-[#D97706] border-b-4 border-[#FEF9C3] pb-4 mb-6 flex items-center gap-3 pr-16">
-              <Trophy className="text-[#F59E0B]" size={32} /> Bảng Vàng Thành Tích
+      {showPetModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-[40px] border-4 border-[#3B82F6] p-8 max-w-2xl w-full shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-black text-[#1E3A8A] text-center mb-2">
+              Chọn Pet Đồng Hành
             </h2>
-            <div className="space-y-4">
-              {[
-                { name: "Nguyễn Văn A", xp: 450, rank: 1 },
-                { name: "Trần Thị B", xp: 420, rank: 2 },
-                { name: "Lê Hoàng C", xp: 390, rank: 3 },
-                { name: "Phạm Minh D", xp: 350, rank: 4 },
-                { name: "Hoàng Ánh E", xp: 310, rank: 5 },
-              ].map((user) => (
-                <div
-                  key={user.rank}
-                  className="flex items-center gap-4 bg-[#F8FAFC] p-4 rounded-2xl border-2 border-[#E2E8F0] hover:border-[#FCD34D] transition-colors"
+            <p className="text-gray-500 font-medium text-center mb-6">
+              Hãy chọn một người bạn thú cưng đáng yêu để bắt đầu hành trình nuôi dưỡng và học tập nhé!
+            </p>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              {pets.map((pet) => (
+                <button
+                  key={pet.id}
+                  onClick={() => setSelectedPetId(pet.id)}
+                  className={`flex flex-col items-center p-4 rounded-3xl transition-all border-4 ${
+                    selectedPetId === pet.id
+                      ? "bg-[#EFF6FF] border-[#3B82F6] scale-105 shadow-lg"
+                      : "bg-white border-gray-200 hover:border-blue-300"
+                  }`}
                 >
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-white ${
-                      user.rank === 1
-                        ? "bg-[#F59E0B] shadow-[0_4px_0_#D97706]"
-                        : user.rank === 2
-                          ? "bg-[#94A3B8] shadow-[0_4px_0_#64748B]"
-                          : user.rank === 3
-                            ? "bg-[#D97706] shadow-[0_4px_0_#B45309]"
-                            : "bg-[#E2E8F0] text-[#64748B]"
-                    }`}
-                  >
-                    {user.rank}
+                  <div className="w-20 h-20 mb-3 flex items-center justify-center">
+                    <PetAvatar src={pet.baseImageUrl} className="w-full h-full text-5xl" imgClassName="w-full h-full object-contain" />
                   </div>
-                  <div className="flex-1 font-bold text-[#1E3A8A]">
-                    {user.name}
-                  </div>
-                  <div className="flex items-center gap-1 bg-[#FFFBEB] px-3 py-1 rounded-full border border-[#FDE68A]">
-                    <Star className="text-[#F59E0B] fill-[#F59E0B]" size={14} />
-                    <span className="font-black text-[#D97706] text-sm">
-                      {user.xp} XP
-                    </span>
-                  </div>
-                </div>
+                  <span className="font-black text-[#1E3A8A] text-sm text-center">
+                    {pet.name}
+                  </span>
+                </button>
               ))}
+            </div>
+
+            {selectedPetId && (
+              <div className="space-y-4 pt-4 border-t-2 border-gray-100 mb-6">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">
+                    Đặt tên cho Pet của bạn:
+                  </label>
+                  <input
+                    type="text"
+                    value={petNameInput}
+                    onChange={(e) => setPetNameInput(e.target.value)}
+                    placeholder="Ví dụ: Bé Thỏ Thông Minh..."
+                    className="w-full px-4 py-3 rounded-2xl bg-gray-50 border-2 border-gray-200 focus:border-[#3B82F6] focus:bg-white focus:outline-none font-bold text-[#1E3A8A]"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowPetModal(false)}
+                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-2xl transition-all"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleSelectPet}
+                disabled={!selectedPetId || !petNameInput.trim()}
+                className="flex-1 py-3 bg-[#3B82F6] hover:bg-[#2563EB] disabled:bg-gray-300 text-white font-black rounded-2xl shadow-[0_4px_0_#1D4ED8] transition-all"
+              >
+                Xác nhận & Nuôi Pet 🚀
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

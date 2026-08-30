@@ -41,7 +41,7 @@ export default function ThreeDViewer() {
           )}
         </div>
 
-        <div className="flex-1 bg-gray-900 rounded-3xl border-4 border-[#3B82F6]/30 overflow-hidden relative flex items-center justify-center group min-h-[600px] shadow-inner">
+        <div className="flex-1 bg-gray-900 rounded-3xl border-4 border-[#3B82F6]/30 overflow-hidden relative flex items-center justify-center group min-h-[450px] md:min-h-[600px] h-[500px] md:h-auto shadow-inner w-full">
           {activeSpace ? (
             <iframe 
               src={activeSpace.url} 

@@ -45,6 +45,24 @@ export default function PetCare() {
          </div>
       </div>
 
+      <div className="bg-gradient-to-r from-[#3B82F6] to-[#10B981] p-6 rounded-[32px] text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 border-4 border-[#A7F3D0]">
+         <div className="flex items-center gap-4 text-center sm:text-left">
+            <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center text-3xl shrink-0 border-2 border-white/30">
+              🎯
+            </div>
+            <div>
+              <h3 className="text-xl font-black mb-1">Săn điểm để nuôi Pet</h3>
+              <p className="text-sm font-bold text-white/90">Làm bài tập trên Bản đồ học tập để nhận Xu & XP chăm sóc Pet!</p>
+            </div>
+         </div>
+         <button 
+           onClick={() => navigate('/student/map')}
+           className="px-6 py-4 bg-white text-[#1E3A8A] font-black rounded-2xl shadow-lg hover:bg-[#FEF3C7] hover:scale-105 transition-all flex items-center gap-2 shrink-0 border-4 border-white"
+         >
+           🗺️ Chọn bản đồ học tập
+         </button>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1">
         {/* Pet Avatar Area */}
         <div className="bg-gradient-to-b from-[#E0F2FE] to-[#F0F9FF] rounded-[40px] p-8 flex flex-col items-center justify-center shadow-xl relative overflow-hidden border-4 border-[#BAE6FD]">
