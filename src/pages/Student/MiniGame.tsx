@@ -27,7 +27,7 @@ export default function MiniGame() {
     setTimeout(() => {
       clearInterval(interval);
       setIsPlaying(false);
-      alert(`Bạn đã hoàn thành trò chơi và đạt ${score} điểm! Pet đã được cộng +20% No và +20% Vui vẻ! 🎉`);
+      alert(`Bạn đã hoàn thành trò chơi và đạt ${score} điểm! Nhận được +10 điểm, +10 XP. Pet đã được cộng +20% No và +20% Vui vẻ! 🎉`);
     }, 10000);
   };
 
@@ -116,7 +116,7 @@ export default function MiniGame() {
                 <button 
                   onClick={() => {
                     playMiniGameReward();
-                    alert("🎉 Bắt đầu chơi! Pet đã được cộng +20% No và +20% Vui vẻ!");
+                    alert("🎉 Bắt đầu chơi! Nhận +10 điểm, +10 XP và Pet được cộng +20% No, +20% Vui vẻ!");
                     setActiveGameUrl(game.url);
                   }}
                   className="w-full py-3 bg-[#3B82F6] text-white font-black rounded-xl hover:bg-[#2563EB] transition-colors"

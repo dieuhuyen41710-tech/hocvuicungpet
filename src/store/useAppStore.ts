@@ -113,7 +113,22 @@ export const useAppStore = create<AppState>()(
       students: mockStudents,
       messages: [],
       studentTasks: [],
-      spaces3D: [],
+      spaces3D: [
+        {
+          id: 'space-1',
+          title: 'Khối Hình Học 3D Cơ Bản',
+          url: 'https://phet.colorado.edu/sims/html/shape-builder/latest/shape-builder_vi.html',
+          description: 'Khám phá và tương tác trực quan với các hình khối 3D.',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 'space-2',
+          title: 'Không Gian Toán Học 3D',
+          url: 'https://www.geogebra.org/3d?embed',
+          description: 'Mô phỏng và quan sát hình học không gian 3D.',
+          createdAt: new Date().toISOString()
+        }
+      ],
       miniGames: mockMiniGames,
       visitCount: 0,
       ratings: [],
@@ -254,20 +269,23 @@ export const useAppStore = create<AppState>()(
             const student = state.currentUser as Student;
             const ownedPets = student.ownedPets || [];
             const currentPetId = student.currentPetId;
+            const newHunger = Math.max(0, (student.petHunger ?? 80) - 10);
 
             const updatedOwnedPets = ownedPets.map(p => {
               if (p.id === currentPetId || (!currentPetId && ownedPets.indexOf(p) === 0)) {
-                return { ...p, completedLessons: newCompleted };
+                return { ...p, completedLessons: newCompleted, hunger: Math.max(0, (p.hunger ?? 80) - 10) };
               }
               return p;
             });
 
             updatedUser = {
               ...student,
+              petHunger: newHunger,
               ownedPets: updatedOwnedPets
             };
 
             updatedStudents = state.students.map(s => s.id === student.id ? (updatedUser as Student) : s);
+            setDoc(doc(db, 'students', updatedUser.id), updatedUser, { merge: true }).catch(() => {});
           }
 
           return { 
@@ -342,6 +360,8 @@ export const useAppStore = create<AppState>()(
             const student = user as Student;
             const newHunger = Math.min(100, (student.petHunger || 0) + 20);
             const newHappiness = Math.min(100, (student.petHappiness || 0) + 20);
+            const newPoints = (student.points || 0) + 10;
+            const newXp = (student.xp || 0) + 10;
 
             let updatedOwnedPets = student.ownedPets || [];
             if (student.currentPetId) {
@@ -367,6 +387,8 @@ export const useAppStore = create<AppState>()(
               ...student,
               petHunger: newHunger,
               petHappiness: newHappiness,
+              points: newPoints,
+              xp: newXp,
               ownedPets: updatedOwnedPets
             };
 
