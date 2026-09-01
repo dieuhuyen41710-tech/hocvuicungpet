@@ -13,18 +13,20 @@ export const getEmbedUrl = (url: string | undefined): string => {
     }
     
     // Canva
-    if (url.includes('canva.com/design/')) {
-      const match = url.match(/(https:\/\/(?:www\.)?canva\.com\/design\/[^\/]+\/[^\/]+\/(?:view|watch|edit))/);
-      if (match) {
-        return `${match[1].replace(/\/(watch|edit)$/, '/view')}?embed`;
+    if (url.includes('canva.com/')) {
+      // If it's a design link
+      if (url.includes('/design/')) {
+        // Clean up edit/watch and ensure view?embed
+        const cleanUrl = url.split('?')[0].replace(/\/(edit|watch|view).*$/, '');
+        return `${cleanUrl}/view?embed`;
       }
     }
     
     // Wordwall
-    if (url.includes('wordwall.net/play/')) {
-       // example: https://wordwall.net/play/123/456/789
-       // to embed: https://wordwall.net/embed/22a492f58e...
-       // Actually wordwall provides specific embed code, we might not be able to just replace. But replacing /play/ with /embed/ usually works for some platforms. Let's just return url.
+    if (url.includes('wordwall.net/')) {
+      if (url.includes('/play/')) {
+        return url.replace('/play/', '/embed/');
+      }
     }
     
   } catch (e) {
@@ -33,3 +35,4 @@ export const getEmbedUrl = (url: string | undefined): string => {
   
   return url;
 };
+

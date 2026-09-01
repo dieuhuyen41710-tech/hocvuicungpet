@@ -9,6 +9,7 @@ import FloatingPet from "../FloatingPet";
 import StudyTimer from "../StudyTimer";
 import PetAIAssistant from "../PetAIAssistant";
 import LevelUpModal from "../LevelUpModal";
+import AppTitleLogo from "../AppTitleLogo";
 
 export default function StudentLayout() {
   const { settings, logout, currentUser } = useAppStore();
@@ -53,12 +54,7 @@ export default function StudentLayout() {
             {settings.logoUrl ? <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-cover" /> : '🐾'}
           </div>
           <div className="hidden lg:block">
-            <h1 className="text-xl font-black text-[#1E40AF] tracking-tight uppercase leading-none">
-              "Học vui cùng Pet"
-            </h1>
-            <span className="text-xs font-bold text-[#60A5FA] uppercase tracking-widest">
-              Trường THCS Bằng Doãn
-            </span>
+            <AppTitleLogo size="sm" />
           </div>
         </div>
 

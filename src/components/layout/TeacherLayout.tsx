@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router';
 import { Home, Users, BookOpen, FileText, Mail, LogOut, Settings } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
+import AppTitleLogo from '../AppTitleLogo';
 
 export default function TeacherLayout() {
   const { logout, currentUser, settings } = useAppStore();
@@ -28,8 +29,7 @@ export default function TeacherLayout() {
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-[#34D399] to-[#10B981] rounded-2xl flex items-center justify-center text-xl md:text-2xl shadow-lg shrink-0 cursor-pointer" onClick={() => navigate('/teacher')}>👨‍🏫</div>
           <div className="hidden lg:block">
-            <h1 className="text-xl font-black text-[#065F46] tracking-tight uppercase leading-none">Học vui cùng Pet (Giáo Viên)</h1>
-            <span className="text-xs font-bold text-[#10B981] uppercase tracking-widest">Trường THCS Bằng Doãn</span>
+            <AppTitleLogo size="sm" roleSuffix="Giáo Viên" />
           </div>
         </div>
 

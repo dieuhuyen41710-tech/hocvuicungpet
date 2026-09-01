@@ -45,17 +45,30 @@ export default function MiniGame() {
         
         {activeGameUrl && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-            <div className="w-full max-w-5xl h-[80vh] bg-white rounded-[32px] overflow-hidden flex flex-col shadow-2xl border-4 border-[#3B82F6] relative animate-in fade-in zoom-in duration-300">
+            <div className="w-full max-w-5xl h-[85vh] bg-white rounded-[32px] overflow-hidden flex flex-col shadow-2xl border-4 border-[#3B82F6] relative animate-in fade-in zoom-in duration-300">
               <div className="bg-[#EFF6FF] p-4 flex justify-between items-center border-b-4 border-[#DBEAFE]">
-                <h3 className="text-xl font-black text-[#1E3A8A] flex items-center gap-2">
-                  <Gamepad2 size={24} className="text-[#3B82F6]" /> Đang chơi Game
-                </h3>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h3 className="text-xl font-black text-[#1E3A8A] flex items-center gap-2">
+                    <Gamepad2 size={24} className="text-[#3B82F6]" /> Trò chơi tương tác
+                  </h3>
+                  <a 
+                    href={activeGameUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="px-3.5 py-1.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-black rounded-xl shadow transition-colors flex items-center gap-1.5"
+                  >
+                    Mở trong tab mới ↗
+                  </a>
+                </div>
                 <button 
                   onClick={() => setActiveGameUrl(null)}
                   className="w-10 h-10 bg-red-100 hover:bg-red-500 text-red-500 hover:text-white rounded-xl flex items-center justify-center transition-colors"
                 >
                   <X size={24} />
                 </button>
+              </div>
+              <div className="bg-[#FEF3C7] px-4 py-2 text-xs font-bold text-[#D97706] text-center border-b border-[#FDE68A]">
+                ⚠️ Lưu ý: Nếu trò chơi ngoài (Canva/Trang khác) báo lỗi quyền truy cập, hãy bấm nút <span className="underline font-black">"Mở trong tab mới"</span> phía trên để chơi không bị gián đoạn.
               </div>
               <div className="flex-1 w-full relative bg-black">
                 <iframe src={getEmbedUrl(activeGameUrl)} className="w-full h-full border-0 absolute inset-0" allow="autoplay; fullscreen"></iframe>

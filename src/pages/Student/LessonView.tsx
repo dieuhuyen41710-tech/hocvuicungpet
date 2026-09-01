@@ -144,13 +144,29 @@ export default function LessonView() {
           )}
 
           {activeTab === 'GAME' && lesson.gameUrl && (
-            <div className="animate-fade-in p-6 bg-white h-full flex flex-col items-center justify-center relative min-h-[500px]">
-              <iframe 
-                src={getEmbedUrl(lesson.gameUrl)} 
-                className="w-full h-full absolute inset-0 border-0 rounded-b-[36px]"
-                title="Mini Game"
-                allow="autoplay; fullscreen"
-              ></iframe>
+            <div className="animate-fade-in bg-white h-full flex flex-col relative min-h-[500px]">
+              <div className="bg-[#EFF6FF] px-6 py-3 flex justify-between items-center border-b-4 border-[#DBEAFE] z-10 flex-wrap gap-2">
+                <span className="font-black text-[#1E3A8A] text-sm">🎮 Trò chơi mini bài học</span>
+                <a 
+                  href={lesson.gameUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-1.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-black rounded-xl shadow transition-colors flex items-center gap-1.5"
+                >
+                  Mở trong tab mới ↗
+                </a>
+              </div>
+              <div className="bg-[#FEF3C7] px-4 py-2 text-xs font-bold text-[#D97706] text-center border-b border-[#FDE68A]">
+                ⚠️ Lưu ý: Nếu trò chơi ngoài (Canva/Trang khác) báo lỗi quyền truy cập, hãy bấm nút <span className="underline font-black">"Mở trong tab mới"</span> phía trên.
+              </div>
+              <div className="flex-1 w-full relative bg-black min-h-[450px]">
+                <iframe 
+                  src={getEmbedUrl(lesson.gameUrl)} 
+                  className="w-full h-full border-0 absolute inset-0"
+                  title="Mini Game"
+                  allow="autoplay; fullscreen"
+                ></iframe>
+              </div>
             </div>
           )}
         </div>

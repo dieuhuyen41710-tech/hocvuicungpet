@@ -55,7 +55,7 @@ export default function LevelUpModal() {
           <p className="text-sm font-bold text-[#92400E] leading-relaxed flex items-start gap-3">
             <span className="text-2xl">🎉</span>
             <span>
-              Tuyệt vời quá! Em học tập rất chăm chỉ và chăm sóc Pet vô cùng tốt. Hãy tiếp tục cố gắng phát huy để Pet tiếp tục tiến hóa và đạt cấp độ cao hơn nữa nhé! Cố lên em ơi! 💪🚀
+              Tuyệt vời quá! Bạn học tập rất chăm chỉ và chăm sóc Pet vô cùng tốt. Hãy tiếp tục cố gắng phát huy để Pet tiếp tục tiến hóa và đạt cấp độ cao hơn nữa nhé! Cố lên bạn nhé! 💪🚀
             </span>
           </p>
         </div>

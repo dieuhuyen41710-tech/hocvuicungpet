@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router';
 import { Home, Users, Settings, LogOut, Shield } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
+import AppTitleLogo from '../AppTitleLogo';
 
 export default function AdminLayout() {
   const { logout, currentUser, settings } = useAppStore();
@@ -36,8 +37,7 @@ export default function AdminLayout() {
   {settings.logoUrl ? <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-cover" /> : '🛡️'}
 </div>
           <div className="hidden lg:block">
-            <h1 className="text-xl font-black text-[#92400E] tracking-tight uppercase leading-none">Học vui cùng Pet (Quản Trị)</h1>
-            <span className="text-xs font-bold text-[#F59E0B] uppercase tracking-widest">"Trường THCS Bằng Doãn"</span>
+            <AppTitleLogo size="sm" roleSuffix="Quản Trị" />
           </div>
         </div>
 

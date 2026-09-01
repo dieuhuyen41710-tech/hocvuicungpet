@@ -9,6 +9,7 @@ import defaultPosterImg from '../assets/poster.jpg';
 import firebaseConfig from '../../firebase-applet-config.json';
 import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
+import AppTitleLogo from '../components/AppTitleLogo';
 
 export default function Login() {
   const settings = useAppStore(state => state.settings);
@@ -158,12 +159,11 @@ export default function Login() {
       {/* Right Half: Login Form */}
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 lg:p-12 bg-white relative">
         <div className="w-full max-w-md flex flex-col items-center justify-center">
-          <div className="text-center mb-6">
+          <div className="text-center mb-6 flex flex-col items-center">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-xl mb-3 text-[#3B82F6] border-4 border-[#DBEAFE] overflow-hidden">
               {settings.logoUrl ? <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-cover" /> : <PawPrint size={40} />}
             </div>
-            <h2 className="text-3xl font-black text-[#1E3A8A] mb-1 uppercase tracking-wide">"Học vui cùng Pet"</h2>
-            <p className="text-sm font-bold text-[#3B82F6]">{settings.school || 'Trường THCS Bằng Doãn'}</p>
+            <AppTitleLogo size="md" className="items-center justify-center text-center mt-2" />
           </div>
 
           <div className="bg-[#F8FAFC] p-8 rounded-[32px] shadow-xl border-4 border-[#DBEAFE] w-full">
