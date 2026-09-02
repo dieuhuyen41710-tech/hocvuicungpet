@@ -139,34 +139,6 @@ export default function MiniGame() {
               </div>
             </div>
           ))};
-
-          <div className="bg-gray-50 p-6 rounded-[24px] border-4 border-gray-200 hover:border-[#FCD34D] transition-colors group cursor-pointer text-left">
-            <div className="w-16 h-16 bg-[#FEF3C7] text-[#D97706] rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-sm">
-              <Zap size={32} />
-            </div>
-            <h3 className="text-xl font-black text-gray-800 mb-2">Đập Chuột Tri Thức</h3>
-            <p className="text-sm text-gray-500 font-medium mb-4">Luyện phản xạ tay mắt cực nhanh. Đập trúng chuột ôm sách để được điểm!</p>
-            <button 
-              onClick={startGame}
-              disabled={isPlaying}
-              className="w-full py-3 bg-[#3B82F6] text-white font-black rounded-xl hover:bg-[#2563EB] disabled:bg-gray-400 transition-colors"
-            >
-              {isPlaying ? `Đang chơi... (${score})` : 'CHƠI NGAY'}
-            </button>
-          </div>
-
-          <div className="bg-gray-50 p-6 rounded-[24px] border-4 border-gray-200 hover:border-[#A7F3D0] transition-colors group cursor-pointer text-left">
-            <div className="w-16 h-16 bg-[#ECFDF5] text-[#059669] rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-sm">
-              <Shield size={32} />
-            </div>
-            <h3 className="text-xl font-black text-gray-800 mb-2">Bảo Vệ Hành Tinh</h3>
-            <p className="text-sm text-gray-500 font-medium mb-4">Bắn hạ các thiên thạch mang đáp án sai để bảo vệ hành tinh xanh.</p>
-            <button 
-              className="w-full py-3 bg-gray-300 text-gray-500 font-black rounded-xl cursor-not-allowed"
-            >
-              SẮP RA MẮT
-            </button>
-          </div>
         </div>
       </div>
     </div>
