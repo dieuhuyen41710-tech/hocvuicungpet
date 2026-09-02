@@ -551,13 +551,20 @@ export const useAppStore = create<AppState>()(
           return state;
         }),
 
-      deleteUser: (id, role) =>
-        set((state) => {
-          if (role === "STUDENT") {
-            return { students: state.students.filter((s) => s.id !== id) };
-          }
-          return { users: state.users.filter((u) => u.id !== id) };
-        }),
+      deleteUser: async (id, role) => {
+        try {
+          const col = (role === 'TEACHER' || role === 'ADMIN') ? "users" : "students";
+          await deleteDoc(doc(db, col, id));
+          set((state) => {
+            if (role === "STUDENT") {
+              return { students: state.students.filter((s) => s.id !== id) };
+            }
+            return { users: state.users.filter((u) => u.id !== id) };
+          });
+        } catch (error) {
+          handleFirestoreError(error, OperationType.DELETE, 'users/students');
+        }
+      },
       sendMessage: (msg) =>
         set((state) => ({
           messages: [
