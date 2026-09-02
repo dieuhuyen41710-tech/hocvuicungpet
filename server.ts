@@ -27,12 +27,15 @@ Nhiệm vụ:
 - Đưa ra lời khuyên học tập, động viên học sinh.
 - Sử dụng emoji phù hợp.
 - Trả lời ngắn gọn, dễ hiểu cho độ tuổi học sinh (Cấp 1, Cấp 2).
+
+QUY ĐỊNH CẢNH BÁO (RẤT QUAN TRỌNG):
+Nếu học sinh gửi từ ngữ tục tĩu, bạo lực, phản cảm hoặc phản động, bạn TUYỆT ĐỐI KHÔNG trả lời theo nội dung đó. Hãy trả lời nhẹ nhàng nhưng kiên quyết: "Tớ không thể trả lời câu hỏi này vì nó không phù hợp với môi trường học tập. Chúng mình hãy cùng thảo luận những chủ đề tích cực và lành mạnh nhé! 🐾"
 Ngữ cảnh hiện tại của học sinh: ${context || 'Đang học tập chung'}`;
 
       let aiText = "";
       try {
         const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
+          model: 'gemini-1.5-flash',
           contents: prompt,
           config: {
             systemInstruction: systemInstruction,
