@@ -48,11 +48,7 @@ import { useAppStore } from './store/useAppStore';
 
 export default function App() {
   useEffect(() => {
-    const visited = sessionStorage.getItem('app_visited');
-    if (!visited) {
-      sessionStorage.setItem('app_visited', 'true');
-      useAppStore.getState().incrementVisitCount();
-    }
+    useAppStore.getState().incrementVisitCount();
   }, []);
 
   return (
