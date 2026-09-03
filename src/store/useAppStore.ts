@@ -24,8 +24,8 @@ import {
 } from "../data/mockData";
 import { createCrudActions } from "./crudActions";
 import { initializeFirestoreData } from "../lib/firebaseSync";
-import { db, handleFirestoreError, OperationType } from "../lib/firebase";
-import { doc, setDoc, updateDoc, deleteDoc, addDoc, collection, increment } from "firebase/firestore";
+import { db, handleFirestoreError, OperationType, cleanFirestoreData } from "../lib/firebase";
+import { doc, setDoc, updateDoc, deleteDoc, addDoc, collection } from "firebase/firestore";
 import { calculatePetLevel, calculatePetLevelByFeedings } from "../lib/petUtils";
 
 interface AppState {
@@ -43,11 +43,9 @@ interface AppState {
   studentTasks: StudentTask[];
   spaces3D: Space3D[];
   miniGames: MiniGame[];
-  visitCount: number;
   ratings: { id: string; stars: number; comment?: string; createdAt: string; userName?: string }[];
   levelUpInfo: { level: number; petName: string } | null;
   
-  incrementVisitCount: () => void;
   addRating: (stars: number, comment?: string) => void;
   clearLevelUpInfo: () => void;
   addSpace3D: (space: Space3D) => void;
@@ -130,18 +128,8 @@ export const useAppStore = create<AppState>()(
         }
       ],
       miniGames: mockMiniGames,
-      visitCount: 0,
       ratings: [],
       levelUpInfo: null,
-      incrementVisitCount: async () => {
-        try {
-          const statsRef = doc(db, 'statistics', 'general');
-          await updateDoc(statsRef, { visitCount: increment(1) });
-          set((state) => ({ visitCount: (state.visitCount || 0) + 1 }));
-        } catch (error) {
-          console.error("Error updating visit count:", error);
-        }
-      },
       addRating: async (stars, comment) => {
         try {
           const newRating = {
@@ -218,20 +206,25 @@ export const useAppStore = create<AppState>()(
             state.users.find((u) => u.username === username) ||
             state.students.find((s) => s.username === username);
           if (user) {
-            const student = { ...(user as Student) };
-            student.petLevel = calculatePetLevelByFeedings(student.petFeedCount || 0, state.settings.globalEvolutions);
-            let petCompleted: string[] = [];
-            if (student.ownedPets && student.currentPetId) {
-              const activePet = student.ownedPets.find(p => p.id === student.currentPetId);
-              if (activePet && activePet.completedLessons) {
-                petCompleted = activePet.completedLessons;
-                if (activePet.level) student.petLevel = activePet.level;
+            if (user.role === 'STUDENT') {
+              const student = { ...(user as Student) };
+              const savedLevel = student.petLevel || 1;
+              const activePet = student.ownedPets?.find(p => p.id === student.currentPetId) || student.ownedPets?.[0];
+              const petLevelFromOwned = activePet?.level || 1;
+              const feedCount = student.petFeedCount || activePet?.feedCount || 0;
+              const calculatedLevel = calculatePetLevelByFeedings(feedCount, state.settings.globalEvolutions);
+              const finalLevel = Math.max(savedLevel, petLevelFromOwned, calculatedLevel);
+              
+              student.petLevel = finalLevel;
+              student.petFeedCount = feedCount;
+              if (activePet) {
+                activePet.level = finalLevel;
+                activePet.feedCount = feedCount;
               }
-            } else if (student.ownedPets && student.ownedPets.length > 0) {
-              petCompleted = student.ownedPets[0].completedLessons || [];
-              if (student.ownedPets[0].level) student.petLevel = student.ownedPets[0].level;
+              const petCompleted: string[] = activePet?.completedLessons || [];
+              return { currentUser: student, completedLessons: petCompleted };
             }
-            return { currentUser: student, completedLessons: petCompleted };
+            return { currentUser: user };
           }
           return state;
         }),
@@ -321,7 +314,9 @@ export const useAppStore = create<AppState>()(
             };
 
             updatedStudents = state.students.map(s => s.id === student.id ? (updatedUser as Student) : s);
-            setDoc(doc(db, 'students', updatedUser.id), updatedUser, { merge: true }).catch(() => {});
+            setDoc(doc(db, 'students', updatedUser.id), cleanFirestoreData(updatedUser), { merge: true }).catch(err => {
+              console.error("Error saving completeLesson to Firestore:", err);
+            });
           }
 
           return { 
@@ -338,8 +333,10 @@ export const useAppStore = create<AppState>()(
             const student = user as Student;
             if (student.points >= cost) {
               const currentFeedCount = (student.petFeedCount || 0) + 1;
-              const newLevel = calculatePetLevelByFeedings(currentFeedCount, state.settings.globalEvolutions);
+              const calculatedLevel = calculatePetLevelByFeedings(currentFeedCount, state.settings.globalEvolutions);
               const oldLevel = student.petLevel || 1;
+              // Never downgrade: ensure level is at least the highest level achieved
+              const newLevel = Math.max(oldLevel, calculatedLevel);
               const isLevelUp = newLevel > oldLevel;
 
               let updatedOwnedPets = student.ownedPets || [];
@@ -350,8 +347,8 @@ export const useAppStore = create<AppState>()(
                       ...p,
                       level: newLevel,
                       feedCount: currentFeedCount,
-                      hunger: Math.min(100, p.hunger + hungerAmount),
-                      happiness: Math.min(100, p.happiness + happinessAmount)
+                      hunger: Math.min(100, (p.hunger ?? student.petHunger ?? 50) + hungerAmount),
+                      happiness: Math.min(100, (p.happiness ?? student.petHappiness ?? 50) + happinessAmount)
                     };
                   }
                   return p;
@@ -361,23 +358,42 @@ export const useAppStore = create<AppState>()(
                   ...updatedOwnedPets[0],
                   level: newLevel,
                   feedCount: currentFeedCount,
-                  hunger: Math.min(100, updatedOwnedPets[0].hunger + hungerAmount),
-                  happiness: Math.min(100, updatedOwnedPets[0].happiness + happinessAmount)
+                  hunger: Math.min(100, (updatedOwnedPets[0].hunger ?? student.petHunger ?? 50) + hungerAmount),
+                  happiness: Math.min(100, (updatedOwnedPets[0].happiness ?? student.petHappiness ?? 50) + happinessAmount)
                 };
+              } else if (student.petId) {
+                const instanceId = Date.now().toString() + Math.random().toString().slice(2, 6);
+                updatedOwnedPets = [{
+                  id: instanceId,
+                  templateId: student.petId,
+                  name: student.petName || 'Pet',
+                  level: newLevel,
+                  hunger: Math.min(100, (student.petHunger ?? 50) + hungerAmount),
+                  happiness: Math.min(100, (student.petHappiness ?? 50) + happinessAmount),
+                  energy: student.petEnergy ?? 100,
+                  feedCount: currentFeedCount,
+                  completedLessons: state.completedLessons || [],
+                  adoptedAt: new Date().toISOString()
+                }];
               }
 
-              const updatedUser = {
+              const currentPetId = student.currentPetId || updatedOwnedPets[0]?.id;
+
+              const updatedUser: Student = {
                 ...student,
+                currentPetId,
                 points: student.points - cost,
                 petFeedCount: currentFeedCount,
                 petLevel: newLevel,
-                petHunger: Math.min(100, student.petHunger + hungerAmount),
-                petHappiness: Math.min(100, student.petHappiness + happinessAmount),
+                petHunger: Math.min(100, (student.petHunger ?? 50) + hungerAmount),
+                petHappiness: Math.min(100, (student.petHappiness ?? 50) + happinessAmount),
                 ownedPets: updatedOwnedPets
               };
 
-              const students = state.students.map(s => s.id === updatedUser.id ? (updatedUser as Student) : s);
-              setDoc(doc(db, 'students', updatedUser.id), updatedUser, { merge: true }).catch(() => {});
+              const students = state.students.map(s => s.id === updatedUser.id ? updatedUser : s);
+              setDoc(doc(db, 'students', updatedUser.id), cleanFirestoreData(updatedUser), { merge: true }).catch(err => {
+                console.error("Error saving feedPet to Firestore:", err);
+              });
 
               return {
                 currentUser: updatedUser as any,
@@ -429,7 +445,7 @@ export const useAppStore = create<AppState>()(
             };
 
             const students = state.students.map(s => s.id === updatedUser.id ? (updatedUser as Student) : s);
-            setDoc(doc(db, 'students', updatedUser.id), updatedUser, { merge: true }).catch(() => {});
+            setDoc(doc(db, 'students', updatedUser.id), cleanFirestoreData(updatedUser), { merge: true }).catch(() => {});
 
             return {
               currentUser: updatedUser as any,
@@ -446,8 +462,9 @@ export const useAppStore = create<AppState>()(
             const student = user as Student;
             const newXp = student.xp + xp;
             const newPoints = student.points + points;
-            const newLevel = calculatePetLevel(newXp, newPoints);
+            const calculatedLevel = calculatePetLevel(newXp, newPoints);
             const oldLevel = student.petLevel || 1;
+            const newLevel = Math.max(oldLevel, calculatedLevel);
             const isLevelUp = newLevel > oldLevel;
 
             let updatedOwnedPets = student.ownedPets || [];
@@ -460,14 +477,22 @@ export const useAppStore = create<AppState>()(
               });
             }
 
+            const updatedUser: Student = {
+              ...student,
+              points: newPoints,
+              xp: newXp,
+              petLevel: newLevel,
+              ownedPets: updatedOwnedPets,
+            };
+
+            const students = state.students.map(s => s.id === updatedUser.id ? updatedUser : s);
+            setDoc(doc(db, 'students', updatedUser.id), cleanFirestoreData(updatedUser), { merge: true }).catch(err => {
+              console.error("Error saving addPointsAndXP to Firestore:", err);
+            });
+
             return {
-              currentUser: {
-                ...student,
-                points: newPoints,
-                xp: newXp,
-                petLevel: newLevel,
-                ownedPets: updatedOwnedPets,
-              },
+              currentUser: updatedUser as any,
+              students,
               levelUpInfo: isLevelUp ? { level: newLevel, petName: student.petName || 'Pet' } : state.levelUpInfo
             };
           }
@@ -479,7 +504,7 @@ export const useAppStore = create<AppState>()(
           const user = state.currentUser;
           if (user && (user.role === "STUDENT" || user.role === "GUEST")) {
             const student = user as Student;
-            const instanceId = Date.now().toString() + Math.random().toString();
+            const instanceId = Date.now().toString() + Math.random().toString().slice(2, 6);
             const newPet = {
               id: instanceId,
               templateId: petId,
@@ -524,7 +549,7 @@ export const useAppStore = create<AppState>()(
             };
             
             const students = state.students.map(s => s.id === updatedUser.id ? (updatedUser as Student) : s);
-            setDoc(doc(db, 'students', updatedUser.id), updatedUser, { merge: true }).catch(() => {});
+            setDoc(doc(db, 'students', updatedUser.id), cleanFirestoreData(updatedUser), { merge: true }).catch(() => {});
             
             return {
               currentUser: updatedUser as any,
@@ -562,12 +587,13 @@ export const useAppStore = create<AppState>()(
 
             const targetPet = updatedOwnedPets.find((p: any) => p.id === instanceId);
             if (targetPet) {
+              const finalLevel = Math.max(student.petLevel || 1, targetPet.level || 1);
               const updatedUser = {
                 ...student,
                 petId: targetPet.templateId,
                 currentPetId: targetPet.id,
                 petName: targetPet.name,
-                petLevel: targetPet.level || 1,
+                petLevel: finalLevel,
                 petHunger: targetPet.hunger,
                 petHappiness: targetPet.happiness,
                 petEnergy: targetPet.energy,
@@ -576,7 +602,7 @@ export const useAppStore = create<AppState>()(
               };
               
               const students = state.students.map(s => s.id === updatedUser.id ? (updatedUser as Student) : s);
-              setDoc(doc(db, 'students', updatedUser.id), updatedUser, { merge: true }).catch(() => {});
+              setDoc(doc(db, 'students', updatedUser.id), cleanFirestoreData(updatedUser), { merge: true }).catch(() => {});
               return { 
                 currentUser: updatedUser, 
                 students,

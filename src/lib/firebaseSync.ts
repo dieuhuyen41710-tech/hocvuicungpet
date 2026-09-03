@@ -1,20 +1,11 @@
 import { collection, getDocs, doc, setDoc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db } from './firebase';
+import { db, cleanFirestoreData } from './firebase';
 import { mockSettings, mockSubjects, mockMapNodes, mockLessons, mockPets, mockMiniGames, mockUsers, mockStudents } from '../data/mockData';
+import { calculatePetLevelByFeedings } from './petUtils';
 
 export async function initializeFirestoreData(set: any) {
   try {
-    // 1. Statistics (Visit Count)
-    const statsRef = doc(db, 'statistics', 'general');
-    const statsSnap = await getDoc(statsRef);
-    if (statsSnap.exists()) {
-      set({ visitCount: statsSnap.data().visitCount || 0 });
-    } else {
-      await setDoc(statsRef, { visitCount: 0 });
-      set({ visitCount: 0 });
-    }
-
-    // 2. Ratings
+    // Ratings
     const ratingsSnap = await getDocs(collection(db, 'ratings'));
     const ratings = ratingsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     set({ ratings });
@@ -126,10 +117,30 @@ export async function initializeFirestoreData(set: any) {
     const studentsSnap = await getDocs(collection(db, 'students'));
     if (!studentsSnap.empty) {
       const students = studentsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      set({ students });
+      set((state: any) => {
+        let updatedCurrentUser = state.currentUser;
+        if (updatedCurrentUser && updatedCurrentUser.role === 'STUDENT') {
+          const fresh = students.find((s: any) => s.id === updatedCurrentUser.id || (s.username && s.username.toLowerCase() === updatedCurrentUser.username?.toLowerCase()));
+          if (fresh) {
+            const savedLevel = Math.max(updatedCurrentUser.petLevel || 1, (fresh as any).petLevel || 1);
+            const activePet = (fresh as any).ownedPets?.find((p: any) => p.id === (fresh as any).currentPetId) || (fresh as any).ownedPets?.[0];
+            const petLevelFromOwned = activePet?.level || 1;
+            const feedCount = (fresh as any).petFeedCount || activePet?.feedCount || 0;
+            const calculatedFeedLevel = calculatePetLevelByFeedings(feedCount, state.settings?.globalEvolutions);
+            const finalLevel = Math.max(savedLevel, petLevelFromOwned, calculatedFeedLevel);
+            
+            updatedCurrentUser = { ...updatedCurrentUser, ...fresh, petLevel: finalLevel, petFeedCount: feedCount };
+            if (activePet) {
+              activePet.level = finalLevel;
+              activePet.feedCount = feedCount;
+            }
+          }
+        }
+        return { students, currentUser: updatedCurrentUser };
+      });
     } else {
       for (const student of mockStudents) {
-        await setDoc(doc(db, 'students', student.id), student);
+        await setDoc(doc(db, 'students', student.id), cleanFirestoreData(student));
       }
     }
 

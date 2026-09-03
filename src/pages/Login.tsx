@@ -4,7 +4,8 @@ import { useAppStore } from '../store/useAppStore';
 import { PawPrint, Lock, User, AlertCircle, Loader2, UserCheck } from 'lucide-react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { collection, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../lib/firebase';
+import { auth, db, cleanFirestoreData } from '../lib/firebase';
+import { calculatePetLevelByFeedings } from '../lib/petUtils';
 import defaultPosterImg from '../assets/poster.jpg';
 import firebaseConfig from '../../firebase-applet-config.json';
 import { initializeApp, deleteApp } from 'firebase/app';
@@ -163,14 +164,33 @@ export default function Login() {
       }
 
       // 4. Sync Firestore user doc and local state
+      if (foundUser.role === 'STUDENT') {
+        const student = foundUser;
+        const savedLevel = student.petLevel || 1;
+        const activePet = student.ownedPets?.find((p: any) => p.id === student.currentPetId) || student.ownedPets?.[0];
+        const petLevelFromOwned = activePet?.level || 1;
+        const feedCount = student.petFeedCount || activePet?.feedCount || 0;
+        const calculatedFeedLevel = calculatePetLevelByFeedings(feedCount, useAppStore.getState().settings.globalEvolutions);
+        
+        const finalLevel = Math.max(savedLevel, petLevelFromOwned, calculatedFeedLevel);
+        foundUser.petLevel = finalLevel;
+        foundUser.petFeedCount = feedCount;
+        if (activePet) {
+          activePet.level = finalLevel;
+          activePet.feedCount = feedCount;
+        }
+      }
+
       const col = foundUser.role === 'STUDENT' ? 'students' : 'users';
-      await setDoc(doc(db, col, foundUser.id), foundUser, { merge: true });
+      await setDoc(doc(db, col, foundUser.id), cleanFirestoreData(foundUser), { merge: true });
 
       useAppStore.setState((state) => {
         if (foundUser.role === 'STUDENT') {
           const exists = state.students.some(s => s.id === foundUser.id);
+          const activePet = foundUser.ownedPets?.find((p: any) => p.id === foundUser.currentPetId) || foundUser.ownedPets?.[0];
           return {
             currentUser: foundUser,
+            completedLessons: activePet?.completedLessons || [],
             students: exists ? state.students.map(s => s.id === foundUser.id ? foundUser : s) : [...state.students, foundUser]
           };
         } else {

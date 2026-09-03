@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { useAppStore } from "../../store/useAppStore";
 import { Student } from "../../types";
-import { Trophy, Users, BookOpen, Star, CheckCircle2, Flame } from "lucide-react";
+import { Trophy, BookOpen, Star, CheckCircle2, Flame } from "lucide-react";
 import { useNavigate } from "react-router";
 import PetAvatar from "../../components/PetAvatar";
 import cutePetsImg from "../../assets/images/cute_pets_banner_1787838175550.jpg";
 import bunnyImg from "../../assets/images/pixar_bunny_avatar_1787838459749.jpg";
 import catImg from "../../assets/images/pixar_cat_avatar_1787838476517.jpg";
-import dogImg from "../../assets/images/pixar_dog_avatar_1787838495530.jpg";
 import pandaImg from "../../assets/images/pixar_panda_avatar_1787838510229.jpg";
 
 export default function StudentHome() {
@@ -15,7 +14,6 @@ export default function StudentHome() {
     (state) => state.currentUser,
   ) as Student | null;
   const settings = useAppStore((state) => state.settings);
-  const visitCount = useAppStore((state) => state.visitCount);
   const ratings = useAppStore((state) => state.ratings);
   const addRating = useAppStore((state) => state.addRating);
   const pets = useAppStore((state) => state.pets);
@@ -77,10 +75,16 @@ export default function StudentHome() {
                   Xin chào, {currentUser.fullName}! 👋
                 </div>
                 <button
-                  onClick={() => setShowPetModal(true)}
+                  onClick={() => {
+                    if (currentUser.petId) {
+                      navigate('/student/pet');
+                    } else {
+                      setShowPetModal(true);
+                    }
+                  }}
                   className="px-8 py-3.5 bg-yellow-400 hover:bg-yellow-300 text-yellow-950 font-black rounded-2xl shadow-[0_6px_0_#B45309] hover:translate-y-1 hover:shadow-[0_2px_0_#B45309] active:translate-y-2 active:shadow-none transition-all text-lg flex items-center gap-3 animate-bounce"
                 >
-                  🐾 Bắt đầu nuôi
+                  {currentUser.petId ? "🐾 Vào nuôi Pet" : "🐾 Bắt đầu nuôi"}
                 </button>
               </div>
             ) : (
@@ -224,24 +228,6 @@ export default function StudentHome() {
                   );
                 });
               })()}
-            </div>
-          </div>
-
-          {/* Stats - Dog Pet Corner & Emerald Border */}
-          <div className="bg-white rounded-[32px] p-6 shadow-xl border-4 border-[#10B981] flex items-center justify-between relative overflow-visible">
-            <div className="absolute -top-6 -right-4 w-20 h-20 bg-white rounded-full p-1 shadow-lg border-4 border-[#10B981] transform rotate-6 hover:scale-110 transition-transform z-20 flex items-center justify-center overflow-hidden">
-              <img src={dogImg} alt="Cute Dog" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-[#ECFDF5] rounded-2xl flex items-center justify-center border-4 border-[#A7F3D0]">
-                <Users className="text-[#10B981]" size={32} />
-              </div>
-              <div>
-                <h3 className="text-lg font-black text-[#065F46] uppercase">
-                  Lượt truy cập chính xác
-                </h3>
-                <p className="text-3xl font-black text-[#059669]">{visitCount.toLocaleString()}</p>
-              </div>
             </div>
           </div>
 

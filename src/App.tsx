@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import StudentLayout from './components/layout/StudentLayout';
@@ -44,13 +44,8 @@ import AdminTests from './pages/Admin/Tests';
 import AdminPets from './pages/Admin/Pets';
 import AdminMailbox from './pages/Admin/Mailbox';
 import AdminSubjects from './pages/Admin/Subjects';
-import { useAppStore } from './store/useAppStore';
 
 export default function App() {
-  useEffect(() => {
-    useAppStore.getState().incrementVisitCount();
-  }, []);
-
   return (
     <BrowserRouter>
       <Routes>

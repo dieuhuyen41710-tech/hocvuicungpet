@@ -64,3 +64,9 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   console.error('Firestore Error: ', JSON.stringify(errInfo));
   throw new Error(JSON.stringify(errInfo));
 }
+
+export function cleanFirestoreData<T extends Record<string, any>>(data: T): T {
+  if (!data || typeof data !== 'object') return data;
+  const json = JSON.stringify(data, (_, value) => (value === undefined ? undefined : value));
+  return JSON.parse(json);
+}

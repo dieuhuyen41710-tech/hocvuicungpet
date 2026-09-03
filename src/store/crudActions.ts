@@ -1,5 +1,5 @@
 import { doc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../lib/firebase';
+import { db, handleFirestoreError, OperationType, cleanFirestoreData } from '../lib/firebase';
 import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
@@ -24,7 +24,7 @@ export const createCrudActions = (set: any) => ({
         console.warn("Firebase Auth creation info (may already exist):", authErr.message);
       }
 
-      await setDoc(doc(db, col, finalUser.id), finalUser);
+      await setDoc(doc(db, col, finalUser.id), cleanFirestoreData(finalUser));
       set((state: any) => {
         if (user.role === "STUDENT")
           return { students: [...state.students, finalUser] };

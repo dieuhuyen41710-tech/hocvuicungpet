@@ -153,7 +153,7 @@ export default function PetCare() {
                            <span className="bg-[#D1FAE5] text-[#059669] px-2 py-1 rounded-lg">+{food.happinessRestore}% vui</span>
                         </div>
                         <button 
-                          disabled={currentUser.points < food.price || currentUser.petHunger >= 100}
+                          disabled={currentUser.points < food.price}
                           onClick={() => {
                             if (currentUser.points >= food.price) {
                               feedPet(food.hungerRestore, food.happinessRestore, food.price);
@@ -162,7 +162,7 @@ export default function PetCare() {
                             }
                           }}
                           className={`w-full py-3 font-black rounded-xl uppercase text-sm tracking-widest transition-all ${
-                            currentUser.points >= food.price && currentUser.petHunger < 100
+                            currentUser.points >= food.price
                               ? 'bg-gradient-to-r from-[#3B82F6] to-[#2563EB] text-white shadow-[0_4px_0_#1E3A8A] hover:translate-y-1 hover:shadow-none active:shadow-none active:translate-y-1' 
                               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                           }`}
