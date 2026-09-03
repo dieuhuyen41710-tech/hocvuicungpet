@@ -116,9 +116,9 @@ export const useAppStore = create<AppState>()(
       spaces3D: [
         {
           id: 'space-1',
-          title: 'Khối Hình Học 3D Cơ Bản',
-          url: 'https://phet.colorado.edu/sims/html/shape-builder/latest/shape-builder_vi.html',
-          description: 'Khám phá và tương tác trực quan với các hình khối 3D.',
+          title: 'Khối Hình Học 3D Cơ Bản (Diện Tích)',
+          url: 'https://phet.colorado.edu/sims/html/area-builder/latest/area-builder_vi.html?embed',
+          description: 'Khám phá và tương tác trực quan với các hình khối và diện tích.',
           createdAt: new Date().toISOString()
         },
         {
