@@ -152,6 +152,16 @@ export default function PetAIAssistant({ isOpen, onClose }: { isOpen: boolean, o
                   : 'bg-white border-2 border-[#FDE68A] text-gray-700 rounded-tl-none shadow-sm'
               }`}>
                 <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                {msg.sender === 'ai' && msg.text.includes('sự cố kết nối') && (
+                  <a 
+                    href="https://chatgpt.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="mt-2 block text-xs font-bold text-blue-600 hover:underline"
+                  >
+                    👉 Thử dùng ChatGPT tại đây
+                  </a>
+                )}
               </div>
             </div>
           ))}

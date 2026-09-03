@@ -4,6 +4,21 @@ import { mockSettings, mockSubjects, mockMapNodes, mockLessons, mockPets, mockMi
 
 export async function initializeFirestoreData(set: any) {
   try {
+    // 1. Statistics (Visit Count)
+    const statsRef = doc(db, 'statistics', 'general');
+    const statsSnap = await getDoc(statsRef);
+    if (statsSnap.exists()) {
+      set({ visitCount: statsSnap.data().visitCount || 0 });
+    } else {
+      await setDoc(statsRef, { visitCount: 0 });
+      set({ visitCount: 0 });
+    }
+
+    // 2. Ratings
+    const ratingsSnap = await getDocs(collection(db, 'ratings'));
+    const ratings = ratingsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    set({ ratings });
+
     // Settings
     const settingsRef = doc(db, 'settings', 'config');
     const settingsSnap = await getDoc(settingsRef);

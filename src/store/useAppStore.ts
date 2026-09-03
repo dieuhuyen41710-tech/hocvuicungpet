@@ -25,7 +25,7 @@ import {
 import { createCrudActions } from "./crudActions";
 import { initializeFirestoreData } from "../lib/firebaseSync";
 import { db, handleFirestoreError, OperationType } from "../lib/firebase";
-import { doc, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { doc, setDoc, updateDoc, deleteDoc, addDoc, collection, increment } from "firebase/firestore";
 import { calculatePetLevel, calculatePetLevelByFeedings } from "../lib/petUtils";
 
 interface AppState {
@@ -133,16 +133,31 @@ export const useAppStore = create<AppState>()(
       visitCount: 0,
       ratings: [],
       levelUpInfo: null,
-      incrementVisitCount: () => set((state) => ({ visitCount: (state.visitCount || 0) + 1 })),
-      addRating: (stars, comment) => set((state) => ({
-        ratings: [{
-          id: Date.now().toString(),
-          stars,
-          comment,
-          createdAt: new Date().toISOString(),
-          userName: state.currentUser?.fullName || 'Khách'
-        }, ...state.ratings]
-      })),
+      incrementVisitCount: async () => {
+        try {
+          const statsRef = doc(db, 'statistics', 'general');
+          await updateDoc(statsRef, { visitCount: increment(1) });
+          set((state) => ({ visitCount: (state.visitCount || 0) + 1 }));
+        } catch (error) {
+          console.error("Error updating visit count:", error);
+        }
+      },
+      addRating: async (stars, comment) => {
+        try {
+          const newRating = {
+            stars,
+            comment,
+            createdAt: new Date().toISOString(),
+            userName: get().currentUser?.fullName || 'Khách'
+          };
+          const docRef = await addDoc(collection(db, 'ratings'), newRating);
+          set((state) => ({
+            ratings: [{ id: docRef.id, ...newRating }, ...state.ratings]
+          }));
+        } catch (error) {
+          console.error("Error adding rating:", error);
+        }
+      },
       clearLevelUpInfo: () => set({ levelUpInfo: null }),
 
       addSpace3D: async (space) => {
