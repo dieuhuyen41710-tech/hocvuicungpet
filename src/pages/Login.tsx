@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { useAppStore } from '../store/useAppStore';
 import { PawPrint, Lock, User, AlertCircle, Loader2, UserCheck } from 'lucide-react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import defaultPosterImg from '../assets/poster.jpg';
 import firebaseConfig from '../../firebase-applet-config.json';
@@ -34,32 +34,39 @@ export default function Login() {
     try {
       const identifierTrim = identifier.trim().toLowerCase();
       
-      // Fetch all students and users from Firestore
-      const studentsSnap = await getDocs(collection(db, 'students'));
-      const usersSnap = await getDocs(collection(db, 'users'));
-
+      // 1. Check existing records in Firestore
       let foundUser: any = null;
+      try {
+        const [studentsSnap, usersSnap] = await Promise.all([
+          getDocs(collection(db, 'students')),
+          getDocs(collection(db, 'users'))
+        ]);
 
-      studentsSnap.forEach((d) => {
-        const data = d.data();
-        if (
-          (data.username && data.username.toLowerCase() === identifierTrim) ||
-          (data.email && data.email.toLowerCase() === identifierTrim)
-        ) {
-          foundUser = { ...data, id: d.id };
-        }
-      });
-
-      if (!foundUser) {
-        usersSnap.forEach((d) => {
+        studentsSnap.forEach((d) => {
           const data = d.data();
           if (
             (data.username && data.username.toLowerCase() === identifierTrim) ||
-            (data.email && data.email.toLowerCase() === identifierTrim)
+            (data.email && data.email.toLowerCase() === identifierTrim) ||
+            d.id === identifierTrim
           ) {
             foundUser = { ...data, id: d.id };
           }
         });
+
+        if (!foundUser) {
+          usersSnap.forEach((d) => {
+            const data = d.data();
+            if (
+              (data.username && data.username.toLowerCase() === identifierTrim) ||
+              (data.email && data.email.toLowerCase() === identifierTrim) ||
+              d.id === identifierTrim
+            ) {
+              foundUser = { ...data, id: d.id };
+            }
+          });
+        }
+      } catch (firestoreErr) {
+        console.warn("Firestore search warning:", firestoreErr);
       }
 
       // Fallback to local store state if not found in Firestore
@@ -84,39 +91,96 @@ export default function Login() {
         }
       }
 
-      if (!foundUser) {
-        throw new Error('Tên đăng nhập hoặc email không tồn tại trong hệ thống.');
-      }
+      // Determine target email for Firebase Auth
+      const targetEmail = foundUser?.email || (identifierTrim.includes('@') ? identifierTrim : `${identifierTrim}@school.local`);
 
-      const targetEmail = foundUser.email || `${foundUser.username}@school.local`;
-
-      // Authenticate with Firebase Auth
+      // 2. Authenticate with Firebase Auth
+      let authUser: any = null;
       try {
-        await signInWithEmailAndPassword(auth, targetEmail, password);
+        const cred = await signInWithEmailAndPassword(auth, targetEmail, password);
+        authUser = cred.user;
       } catch (authErr: any) {
         console.warn("Auth sign-in warning:", authErr.code);
-        // If password matches database record, auto-create auth account if missing
-        if (foundUser.password && foundUser.password === password) {
+        // If password matches local database record, auto-create auth account if missing
+        if (foundUser?.password && foundUser.password === password) {
           try {
             const secondaryApp = initializeApp(firebaseConfig, "LoginSecondary_" + Date.now());
             const secondaryAuth = getAuth(secondaryApp);
             await createUserWithEmailAndPassword(secondaryAuth, targetEmail, password);
             await deleteApp(secondaryApp);
-            await signInWithEmailAndPassword(auth, targetEmail, password);
+            const cred = await signInWithEmailAndPassword(auth, targetEmail, password);
+            authUser = cred.user;
           } catch (createErr) {
             console.warn("Secondary auth creation note:", createErr);
-            // Fallback direct sign-in if possible or proceed
           }
         } else {
-          throw new Error('Sai mật khẩu hoặc thông tin đăng nhập không chính xác.');
+          if (authErr.code === 'auth/invalid-credential' || authErr.code === 'auth/wrong-password') {
+            throw new Error('Sai mật khẩu. Vui lòng kiểm tra lại mật khẩu của bạn.');
+          } else if (authErr.code === 'auth/user-not-found') {
+            throw new Error('Tài khoản hoặc email không tồn tại trong hệ thống.');
+          } else if (authErr.code === 'auth/too-many-requests') {
+            throw new Error('Đã thử đăng nhập sai quá nhiều lần. Vui lòng thử lại sau ít phút.');
+          } else {
+            throw new Error('Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin tài khoản hoặc mật khẩu.');
+          }
         }
       }
 
-      // Sync Firestore user doc
+      // 3. If account was added directly in Firebase Auth Console, ensure Firestore record exists
+      if (!foundUser) {
+        if (authUser) {
+          try {
+            const userDocSnap = await getDoc(doc(db, 'users', authUser.uid));
+            if (userDocSnap.exists()) {
+              foundUser = { ...userDocSnap.data(), id: authUser.uid };
+            } else {
+              const studentDocSnap = await getDoc(doc(db, 'students', authUser.uid));
+              if (studentDocSnap.exists()) {
+                foundUser = { ...studentDocSnap.data(), id: authUser.uid };
+              }
+            }
+          } catch (fetchErr) {
+            console.warn("Error checking user doc by UID:", fetchErr);
+          }
+
+          // If still not found in Firestore, this account was created in Firebase Auth Console
+          // Project owners who create accounts in Firebase Auth Console intend them as Admins
+          if (!foundUser) {
+            const usernamePart = authUser.email ? authUser.email.split('@')[0] : 'admin';
+            foundUser = {
+              id: authUser.uid,
+              fullName: authUser.displayName || usernamePart,
+              username: usernamePart,
+              email: authUser.email || targetEmail,
+              role: 'ADMIN',
+              createdAt: new Date().toISOString()
+            };
+            await setDoc(doc(db, 'users', authUser.uid), foundUser, { merge: true });
+          }
+        } else {
+          throw new Error('Tên đăng nhập hoặc email không tồn tại trong hệ thống.');
+        }
+      }
+
+      // 4. Sync Firestore user doc and local state
       const col = foundUser.role === 'STUDENT' ? 'students' : 'users';
       await setDoc(doc(db, col, foundUser.id), foundUser, { merge: true });
 
-      useAppStore.setState({ currentUser: foundUser });
+      useAppStore.setState((state) => {
+        if (foundUser.role === 'STUDENT') {
+          const exists = state.students.some(s => s.id === foundUser.id);
+          return {
+            currentUser: foundUser,
+            students: exists ? state.students.map(s => s.id === foundUser.id ? foundUser : s) : [...state.students, foundUser]
+          };
+        } else {
+          const exists = state.users.some(u => u.id === foundUser.id);
+          return {
+            currentUser: foundUser,
+            users: exists ? state.users.map(u => u.id === foundUser.id ? foundUser : u) : [...state.users, foundUser]
+          };
+        }
+      });
 
       if (foundUser.role === 'ADMIN') {
         navigate('/admin');

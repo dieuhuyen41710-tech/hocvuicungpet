@@ -31,6 +31,12 @@ service cloud.firestore {
     match /spaces3D/{id} {
       allow read, write: if true;
     }
+    match /statistics/{id} {
+      allow read, write: if true;
+    }
+    match /ratings/{id} {
+      allow read, write: if true;
+    }
     match /messages/{id} {
       allow read, write: if true;
     }
