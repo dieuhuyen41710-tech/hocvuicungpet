@@ -35,7 +35,7 @@ Ngữ cảnh hiện tại của học sinh: ${context || 'Đang học tập chun
       let aiText = "";
       try {
         const response = await ai.models.generateContent({
-          model: 'gemini-1.5-flash',
+          model: 'gemini-3.8-flash',
           contents: prompt,
           config: {
             systemInstruction: systemInstruction,
@@ -47,7 +47,7 @@ Ngữ cảnh hiện tại của học sinh: ${context || 'Đang học tập chun
         console.warn("Primary model failed, trying fallback model or smart response:", apiErr);
         try {
           const response2 = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'gemini-3.8-flash',
             contents: prompt,
             config: {
               systemInstruction: systemInstruction,
