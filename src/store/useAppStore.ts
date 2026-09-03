@@ -613,7 +613,7 @@ export const useAppStore = create<AppState>()(
       };
     },
     {
-      name: "vuong-quoc-pet-storage",
+      name: "vuong-quoc-pet-storage-v2",
     },
   ),
 );
