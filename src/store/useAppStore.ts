@@ -145,15 +145,30 @@ export const useAppStore = create<AppState>()(
       })),
       clearLevelUpInfo: () => set({ levelUpInfo: null }),
 
-      addSpace3D: (space) => set((state) => {
-        console.log("Adding space:", space);
-        return { spaces3D: [...state.spaces3D, space] };
-      }),
-      updateSpace3D: (id, space) => set((state) => ({ spaces3D: state.spaces3D.map(s => s.id === id ? { ...s, ...space } : s) })),
-      deleteSpace3D: (id) => set((state) => {
-        console.log("Deleting space:", id);
-        return { spaces3D: state.spaces3D.filter(s => s.id !== id) };
-      }),
+      addSpace3D: async (space) => {
+        try {
+          await setDoc(doc(db, 'spaces3D', space.id), space);
+          set((state) => ({ spaces3D: [...state.spaces3D, space] }));
+        } catch (error) {
+          handleFirestoreError(error, OperationType.CREATE, 'spaces3D');
+        }
+      },
+      updateSpace3D: async (id, space) => {
+        try {
+          await updateDoc(doc(db, 'spaces3D', id), space);
+          set((state) => ({ spaces3D: state.spaces3D.map(s => s.id === id ? { ...s, ...space } : s) }));
+        } catch (error) {
+          handleFirestoreError(error, OperationType.UPDATE, 'spaces3D');
+        }
+      },
+      deleteSpace3D: async (id) => {
+        try {
+          await deleteDoc(doc(db, 'spaces3D', id));
+          set((state) => ({ spaces3D: state.spaces3D.filter(s => s.id !== id) }));
+        } catch (error) {
+          handleFirestoreError(error, OperationType.DELETE, 'spaces3D');
+        }
+      },
       
       addMiniGame: async (game) => {
         try {

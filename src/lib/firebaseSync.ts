@@ -57,6 +57,34 @@ export async function initializeFirestoreData(set: any) {
       }
     }
 
+    // Spaces3D
+    const spaces3DSnap = await getDocs(collection(db, 'spaces3D'));
+    if (!spaces3DSnap.empty) {
+      const spaces3D = spaces3DSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      set({ spaces3D });
+    } else {
+      const initialSpaces = [
+        {
+          id: 'space-1',
+          title: 'Khối Hình Học 3D Cơ Bản (Diện Tích)',
+          url: 'https://phet.colorado.edu/sims/html/area-builder/latest/area-builder_vi.html?embed',
+          description: 'Khám phá và tương tác trực quan với các hình khối và diện tích.',
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: 'space-2',
+          title: 'Không Gian Toán Học 3D',
+          url: 'https://www.geogebra.org/3d?embed',
+          description: 'Mô phỏng và quan sát hình học không gian 3D.',
+          createdAt: new Date().toISOString()
+        }
+      ];
+      for (const space of initialSpaces) {
+        await setDoc(doc(db, 'spaces3D', space.id), space);
+      }
+      set({ spaces3D: initialSpaces });
+    }
+
     // Pets
     const petsSnap = await getDocs(collection(db, 'pets'));
     if (!petsSnap.empty) {
