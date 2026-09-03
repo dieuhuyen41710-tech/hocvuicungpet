@@ -41,14 +41,25 @@ export default function ThreeDViewer() {
           )}
         </div>
 
-        <div className="flex-1 bg-gray-900 rounded-3xl border-4 border-[#3B82F6]/30 overflow-hidden relative flex items-center justify-center group min-h-[450px] md:min-h-[600px] h-[500px] md:h-auto shadow-inner w-full">
+        <div className="flex-1 bg-gray-900 rounded-3xl border-4 border-[#3B82F6]/30 overflow-hidden relative flex items-center justify-center group min-h-[400px] shadow-inner w-full">
           {activeSpace ? (
-            <iframe 
-              src={activeSpace.url} 
-              className="w-full h-full absolute inset-0 border-0" 
-              title={activeSpace.title}
-              allow="xr-spatial-tracking; autoplay; fullscreen"
-            ></iframe>
+            <>
+              <iframe 
+                src={activeSpace.url} 
+                className="w-full h-full absolute inset-0 border-0" 
+                title={activeSpace.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              ></iframe>
+              <a 
+                href={activeSpace.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute top-4 right-4 bg-black/50 text-white px-3 py-2 rounded-lg flex items-center gap-2 text-xs font-bold hover:bg-black/70 transition-colors z-10"
+              >
+                Mở trong tab mới <ExternalLink size={14} />
+              </a>
+            </>
           ) : (
             <div className="text-center p-6 relative z-10 text-white">
               <div className="w-24 h-24 mx-auto bg-white/10 rounded-2xl shadow-md border border-white/20 flex items-center justify-center mb-4 text-[#3B82F6] animate-spin-slow">
