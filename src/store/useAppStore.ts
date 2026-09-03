@@ -145,9 +145,15 @@ export const useAppStore = create<AppState>()(
       })),
       clearLevelUpInfo: () => set({ levelUpInfo: null }),
 
-      addSpace3D: (space) => set((state) => ({ spaces3D: [...state.spaces3D, space] })),
+      addSpace3D: (space) => set((state) => {
+        console.log("Adding space:", space);
+        return { spaces3D: [...state.spaces3D, space] };
+      }),
       updateSpace3D: (id, space) => set((state) => ({ spaces3D: state.spaces3D.map(s => s.id === id ? { ...s, ...space } : s) })),
-      deleteSpace3D: (id) => set((state) => ({ spaces3D: state.spaces3D.filter(s => s.id !== id) })),
+      deleteSpace3D: (id) => set((state) => {
+        console.log("Deleting space:", id);
+        return { spaces3D: state.spaces3D.filter(s => s.id !== id) };
+      }),
       
       addMiniGame: async (game) => {
         try {

@@ -12,6 +12,7 @@ export default function AdminSpaces3D() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Submitting space:", editingSpace, formData);
     if (editingSpace) {
       updateSpace3D(editingSpace.id, formData);
     } else {
