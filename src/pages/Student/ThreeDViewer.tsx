@@ -51,14 +51,17 @@ export default function ThreeDViewer() {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
               ></iframe>
-              <a 
-                href={activeSpace.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="absolute top-4 right-4 bg-black/50 text-white px-3 py-2 rounded-lg flex items-center gap-2 text-xs font-bold hover:bg-black/70 transition-colors z-10"
-              >
-                Mở trong tab mới <ExternalLink size={14} />
-              </a>
+              {/* Overlay hiển thị nút bấm nổi bật khi nhúng bị chặn */}
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-20 opacity-0 hover:opacity-100 transition-opacity">
+                <a 
+                  href={activeSpace.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-[#3B82F6] text-white px-8 py-4 rounded-full flex items-center gap-3 text-lg font-black hover:bg-[#2563EB] transition-all shadow-xl scale-110"
+                >
+                  Mở mô hình 3D toàn màn hình <ExternalLink size={20} />
+                </a>
+              </div>
             </>
           ) : (
             <div className="text-center p-6 relative z-10 text-white">
