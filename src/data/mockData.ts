@@ -1,17 +1,17 @@
 import { Role, Student, User, Subject, MapNode, Lesson, Question, Game, PetTemplate, Food, SystemSettings, MiniGame } from '../types';
 
 export const mockUsers: User[] = [
-  { id: 'admin1', username: 'admin', fullName: 'Nguyễn Diệu Huyền', role: 'ADMIN', createdAt: new Date().toISOString() },
-  { id: 'teacher1', username: 'teacher', fullName: 'Thầy Cường', role: 'TEACHER', createdAt: new Date().toISOString() },
-  { id: 'teacher2', username: 'teacher2', fullName: 'Cô Lan', role: 'TEACHER', createdAt: new Date().toISOString() },
+  { id: 'admin1', username: 'admin', email: 'dieuhuyen41710@gmail.com', password: 'admin', fullName: 'Nguyễn Diệu Huyền', role: 'ADMIN', createdAt: new Date().toISOString() },
+  { id: 'teacher1', username: 'teacher', email: 'teacher@school.local', password: '123456', fullName: 'Thầy Cường', role: 'TEACHER', createdAt: new Date().toISOString() },
+  { id: 'teacher2', username: 'teacher2', email: 'teacher2@school.local', password: '123456', fullName: 'Cô Lan', role: 'TEACHER', createdAt: new Date().toISOString() },
 ];
 
 export const mockStudents: Student[] = [
   {
-    id: 'student1', username: 'student', fullName: 'Nguyễn Minh Anh', role: 'STUDENT', class: '7A', points: 150, xp: 450, streak: 5, petLevel: 1, petHunger: 80, petHappiness: 90, petEnergy: 100, lastLogin: new Date().toISOString(), createdAt: new Date().toISOString()
+    id: 'student1', username: 'student', email: 'student@school.local', password: '123456', fullName: 'Nguyễn Minh Anh', role: 'STUDENT', class: '7A', points: 150, xp: 450, streak: 5, petLevel: 1, petHunger: 80, petHappiness: 90, petEnergy: 100, lastLogin: new Date().toISOString(), createdAt: new Date().toISOString()
   },
   {
-    id: 'student2', username: 'student2', fullName: 'Lê Hoàng Nam', role: 'STUDENT', class: '7A', points: 20, xp: 50, streak: 1, petLevel: 1, petHunger: 40, petHappiness: 50, petEnergy: 60, lastLogin: new Date().toISOString(), createdAt: new Date().toISOString()
+    id: 'student2', username: 'student2', email: 'student2@school.local', password: '123456', fullName: 'Lê Hoàng Nam', role: 'STUDENT', class: '7A', points: 20, xp: 50, streak: 1, petLevel: 1, petHunger: 40, petHappiness: 50, petEnergy: 60, lastLogin: new Date().toISOString(), createdAt: new Date().toISOString()
   },
 ];
 

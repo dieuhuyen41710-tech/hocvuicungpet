@@ -202,9 +202,10 @@ export const useAppStore = create<AppState>()(
 
       login: (username) =>
         set((state) => {
+          const target = username.trim().toLowerCase();
           const user =
-            state.users.find((u) => u.username === username) ||
-            state.students.find((s) => s.username === username);
+            state.users.find((u) => u.username?.toLowerCase() === target || u.email?.toLowerCase() === target) ||
+            state.students.find((s) => s.username?.toLowerCase() === target || s.email?.toLowerCase() === target);
           if (user) {
             if (user.role === 'STUDENT') {
               const student = { ...(user as Student) };
