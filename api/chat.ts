@@ -14,17 +14,94 @@ interface VercelResponse {
   end: () => void;
 }
 
-// Helper to resolve API key: User key takes priority, then process.env.GEMINI_API_KEY
-function resolveApiKey(req: VercelRequest): { key: string | undefined; source: 'user' | 'system' | 'none' } {
-  const userKey = (req.headers['x-gemini-api-key'] as string) || req.body?.apiKey;
-  if (userKey && typeof userKey === 'string' && userKey.trim().length > 0) {
-    return { key: userKey.trim(), source: 'user' };
+// Simple in-memory rate limiting to prevent abuse and runaway Vercel/Gemini costs
+interface RateLimitRecord {
+  count: number;
+  resetAt: number;
+}
+const rateLimitMap = new Map<string, RateLimitRecord>();
+
+function checkRateLimit(identifier: string, maxRequests: number, windowMs: number = 60000): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+  const record = rateLimitMap.get(identifier);
+
+  if (!record || now > record.resetAt) {
+    rateLimitMap.set(identifier, { count: 1, resetAt: now + windowMs });
+    return { allowed: true, remaining: maxRequests - 1 };
   }
-  const systemKey = process.env.GEMINI_API_KEY;
-  if (systemKey && systemKey.trim().length > 0) {
-    return { key: systemKey.trim(), source: 'system' };
+
+  if (record.count >= maxRequests) {
+    return { allowed: false, remaining: 0 };
   }
-  return { key: undefined, source: 'none' };
+
+  record.count += 1;
+  return { allowed: true, remaining: maxRequests - record.count };
+}
+
+// Classify errors from Gemini API into clear, actionable categories
+function classifyGeminiError(err: any): { errorCode: string; message: string; httpStatus: number } {
+  const rawMsg = err?.message || String(err || '');
+  const lowerMsg = rawMsg.toLowerCase();
+
+  if (
+    lowerMsg.includes('api_key_invalid') ||
+    lowerMsg.includes('api key not valid') ||
+    lowerMsg.includes('invalid api key') ||
+    lowerMsg.includes('key expired') ||
+    rawMsg.includes('401') ||
+    (rawMsg.includes('403') && lowerMsg.includes('key'))
+  ) {
+    return {
+      errorCode: 'INVALID_API_KEY',
+      message: 'API Key không hợp lệ hoặc đã bị vô hiệu hóa. Vui lòng kiểm tra lại API Key trên Google AI Studio.',
+      httpStatus: 400
+    };
+  }
+
+  if (
+    lowerMsg.includes('quota') ||
+    lowerMsg.includes('resource_exhausted') ||
+    rawMsg.includes('429') ||
+    lowerMsg.includes('rate limit')
+  ) {
+    return {
+      errorCode: 'QUOTA_EXCEEDED',
+      message: 'API Key đã vượt quá hạn mức yêu cầu của Google (Quota Exceeded / Rate Limit 429). Bạn có thể thử lại sau hoặc chuyển sang nguồn khóa khác.',
+      httpStatus: 429
+    };
+  }
+
+  if (
+    rawMsg.includes('503') ||
+    lowerMsg.includes('unavailable') ||
+    lowerMsg.includes('high traffic') ||
+    lowerMsg.includes('overloaded')
+  ) {
+    return {
+      errorCode: 'SERVICE_BUSY',
+      message: 'Máy chủ Google Gemini đang tạm thời bận hoặc có lưu lượng truy cập cao (503). Vui lòng thử lại sau vài giây.',
+      httpStatus: 503
+    };
+  }
+
+  if (
+    lowerMsg.includes('fetch failed') ||
+    lowerMsg.includes('enotfound') ||
+    lowerMsg.includes('etimedout') ||
+    lowerMsg.includes('network')
+  ) {
+    return {
+      errorCode: 'NETWORK_ERROR',
+      message: 'Lỗi mạng khi kết nối đến dịch vụ Google AI. Vui lòng kiểm tra kết nối Internet của thiết bị.',
+      httpStatus: 502
+    };
+  }
+
+  return {
+    errorCode: 'GEMINI_ERROR',
+    message: `Lỗi xử lý Gemini AI: ${rawMsg}`,
+    httpStatus: 500
+  };
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -37,101 +114,290 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
-  // Handle status check
+  const systemKey = process.env.GEMINI_API_KEY?.trim() || '';
+  const hasSystemKey = systemKey.length > 0;
+
+  // Handle GET status check: /api/chat or /api/chat/status
   if (req.method === 'GET') {
-    const hasSystemKey = !!(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 0);
     return res.status(200).json({
       hasSystemKey,
+      defaultModel: 'gemini-3.8-flash',
       message: hasSystemKey
-        ? "Đã cấu hình API Key hệ thống trên Vercel (GEMINI_API_KEY)."
-        : "Chưa cấu hình API Key hệ thống trên Vercel. Người dùng có thể tự nhập API Key cá nhân trong cài đặt Chatbot."
+        ? 'Đã cấu hình API Key mặc định của hệ thống trên Vercel (GEMINI_API_KEY).'
+        : 'Chưa cấu hình API Key hệ thống trên Vercel. Người dùng có thể sử dụng API Key cá nhân trong cài đặt Chatbot.'
     });
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: 'Phương thức không được hỗ trợ (Method Not Allowed)' });
   }
 
-  const { isTest, prompt, context } = req.body || {};
-  const { key, source } = resolveApiKey(req);
+  const body = req.body || {};
+  const isTest = !!body.isTest || !!req.url?.includes('test-connection');
+  const userKeyHeader = (req.headers['x-gemini-api-key'] as string) || '';
+  const userKeyBody = (body.apiKey as string) || '';
+  const personalKey = (userKeyHeader || userKeyBody).trim();
 
-  if (!key) {
-    return res.status(400).json({
-      success: false,
-      error: 'Chưa có API Key Gemini. Vui lòng mở cài đặt trong Chatbot (⚙️) để nhập API Key hoặc cấu hình GEMINI_API_KEY trong Environment Variables của Vercel.',
-      needsKey: true
-    });
-  }
+  // Mode: 'personal' | 'system' | 'auto' (default 'auto')
+  const requestedMode: 'personal' | 'system' | 'auto' = body.mode || 'auto';
+  const allowFallback: boolean = !!body.allowFallback;
+  const testSource: 'personal' | 'system' | undefined = body.testSource;
 
-  const ai = new GoogleGenAI({
-    apiKey: key,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build'
+  // Identify client for rate limiting
+  const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || 'unknown';
+
+  // ==========================================
+  // CASE 1: TEST CONNECTION REQUEST
+  // ==========================================
+  if (isTest) {
+    let keyToTest = '';
+    let sourceUsed: 'personal' | 'system' = 'personal';
+
+    if (testSource === 'system' || (requestedMode === 'system' && !personalKey)) {
+      if (!hasSystemKey) {
+        return res.status(400).json({
+          success: false,
+          errorCode: 'NO_SYSTEM_KEY',
+          error: 'Chưa cấu hình biến môi trường GEMINI_API_KEY trên Vercel. Thầy/cô hãy vào Settings > Environment Variables trên Vercel để thêm biến này.',
+          source: 'system'
+        });
       }
+      keyToTest = systemKey;
+      sourceUsed = 'system';
+    } else {
+      if (!personalKey) {
+        return res.status(400).json({
+          success: false,
+          errorCode: 'NO_PERSONAL_KEY',
+          error: 'Chưa nhập API Key cá nhân để kiểm tra. Vui lòng dán khóa vào ô nhập trước.',
+          source: 'personal'
+        });
+      }
+      keyToTest = personalKey;
+      sourceUsed = 'personal';
     }
-  });
 
-  // If this is a test connection request
-  if (isTest || req.url?.includes('test-connection')) {
     try {
+      const ai = new GoogleGenAI({
+        apiKey: keyToTest,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build'
+          }
+        }
+      });
+
       const response = await ai.models.generateContent({
         model: 'gemini-3.8-flash',
         contents: 'Ping test connection. Trả lời đúng 1 chữ: OK'
       });
+
       return res.status(200).json({
         success: true,
-        message: 'Kết nối API Key thành công! Gemini 3.8 Flash đã sẵn sàng.',
-        source: source === 'user' ? 'Key người dùng nhập' : 'Key hệ thống Vercel',
+        source: sourceUsed,
+        message: `Kết nối thành công! Gemini 3.8 Flash đã sẵn sàng hoạt động với ${sourceUsed === 'personal' ? 'Khóa cá nhân' : 'Khóa mặc định hệ thống (Vercel)'}.`,
         model: 'gemini-3.8-flash',
-        reply: response.text || 'OK'
+        reply: response.text?.trim() || 'OK'
       });
     } catch (err: any) {
-      if (err?.message?.includes("503") || err?.message?.includes("UNAVAILABLE")) {
+      const classified = classifyGeminiError(err);
+      // If Google server is overloaded (503), the key itself is authenticated
+      if (classified.errorCode === 'SERVICE_BUSY') {
         return res.status(200).json({
           success: true,
-          message: 'API Key hợp lệ! (Máy chủ Gemini đang có lưu lượng truy cập cao, tính năng chat sẵn sàng)',
-          source: source === 'user' ? 'Key người dùng nhập' : 'Key hệ thống Vercel',
+          source: sourceUsed,
+          message: `API Key hợp lệ! (Lưu ý: Máy chủ Gemini đang có lưu lượng truy cập cao, tính năng chat vẫn sẽ thử lại khi sử dụng)`,
           model: 'gemini-3.8-flash'
         });
       }
-      return res.status(400).json({
+
+      return res.status(classified.httpStatus).json({
         success: false,
-        error: `Lỗi kết nối API Key: ${err?.message || 'Không thể xác thực'}`
+        source: sourceUsed,
+        errorCode: classified.errorCode,
+        error: `[Kiểm tra ${sourceUsed === 'personal' ? 'Khóa cá nhân' : 'Khóa hệ thống'}] ${classified.message}`
       });
     }
   }
 
-  // Standard chat generation
-  const systemInstruction = `Bạn là một thú cưng ảo (Pet) thông minh, dễ thương, đóng vai trò như một người bạn học tập đồng hành cùng học sinh. 
+  // ==========================================
+  // CASE 2: REGULAR CHAT REQUEST
+  // ==========================================
+  const prompt = (body.prompt || '').trim();
+  const context = (body.context || '').trim();
+
+  if (!prompt) {
+    return res.status(400).json({
+      success: false,
+      errorCode: 'EMPTY_PROMPT',
+      error: 'Nội dung tin nhắn không được để trống.'
+    });
+  }
+
+  // Payload size security check: Reject prompts exceeding 2000 chars
+  if (prompt.length > 2000) {
+    return res.status(400).json({
+      success: false,
+      errorCode: 'PROMPT_TOO_LONG',
+      error: 'Câu hỏi quá dài (tối đa 2000 ký tự). Vui lòng rút ngắn nội dung để tiếp tục.'
+    });
+  }
+
+  // Resolve which key to attempt based on user mode
+  let primaryKey = '';
+  let primarySource: 'personal' | 'system' = 'personal';
+
+  if (requestedMode === 'system') {
+    if (!hasSystemKey) {
+      return res.status(400).json({
+        success: false,
+        errorCode: 'NO_SYSTEM_KEY',
+        needsConfig: true,
+        error: 'Chưa cấu hình API Key mặc định của hệ thống trên Vercel. Bạn có thể chuyển sang chế độ "Dùng API Key cá nhân" trong cài đặt Chatbot (⚙️).'
+      });
+    }
+    primaryKey = systemKey;
+    primarySource = 'system';
+  } else if (requestedMode === 'personal') {
+    if (!personalKey) {
+      return res.status(400).json({
+        success: false,
+        errorCode: 'NO_PERSONAL_KEY',
+        needsConfig: true,
+        error: 'Bạn đang chọn chế độ "Dùng API Key cá nhân" nhưng chưa nhập khóa. Vui lòng mở Cài đặt Chatbot (⚙️) để nhập khóa hoặc chuyển sang chế độ "Khóa mặc định".'
+      });
+    }
+    primaryKey = personalKey;
+    primarySource = 'personal';
+  } else {
+    // Mode 'auto': Prefer personal if provided, else system
+    if (personalKey) {
+      primaryKey = personalKey;
+      primarySource = 'personal';
+    } else if (hasSystemKey) {
+      primaryKey = systemKey;
+      primarySource = 'system';
+    } else {
+      return res.status(400).json({
+        success: false,
+        errorCode: 'NO_KEY_CONFIGURED',
+        needsConfig: true,
+        error: 'Chưa có API Key nào được thiết lập. Vui lòng mở Cài đặt Chatbot (biểu tượng ⚙️) để nhập API Key cá nhân, hoặc giáo viên cấu hình GEMINI_API_KEY trên Vercel.'
+      });
+    }
+  }
+
+  // Anti-abuse rate limit: 25 req/min for system key, 60 req/min for personal key
+  const rateLimitMax = primarySource === 'system' ? 25 : 60;
+  const rateKey = `${clientIp}:${primarySource}`;
+  const rateCheck = checkRateLimit(rateKey, rateLimitMax, 60000);
+  if (!rateCheck.allowed) {
+    return res.status(429).json({
+      success: false,
+      errorCode: 'RATE_LIMITED',
+      error: `Bạn đang gửi câu hỏi quá nhanh. Vui lòng đợi 1 phút trước khi tiếp tục (Giới hạn bảo vệ hệ thống).`
+    });
+  }
+
+  const systemInstruction = `Bạn là một thú cưng ảo (Pet) thông minh, dễ thương, đóng vai trò như một người bạn học tập đồng hành cùng học sinh trong ứng dụng Vương Quốc Pet Tri Thức. 
 Ngôn ngữ: Tiếng Việt. Giọng điệu: Vui vẻ, gần gũi, xưng hô là "tớ" và "cậu".
 Nhiệm vụ:
-- Giải đáp các thắc mắc về bài tập, môn học.
-- Đưa ra lời khuyên học tập, động viên học sinh.
-- Sử dụng emoji phù hợp.
+- Giải đáp các thắc mắc về bài tập, môn học Toán và các kiến thức bổ ích.
+- Đưa ra lời khuyên học tập, động viên học sinh kiên trì rèn luyện.
+- Sử dụng emoji sinh động, thân thiện.
 - Trả lời ngắn gọn, dễ hiểu cho độ tuổi học sinh (Cấp 1, Cấp 2).
 
 QUY ĐỊNH CẢNH BÁO (RẤT QUAN TRỌNG):
 Nếu học sinh gửi từ ngữ tục tĩu, bạo lực, phản cảm hoặc phản động, bạn TUYỆT ĐỐI KHÔNG trả lời theo nội dung đó. Hãy trả lời nhẹ nhàng nhưng kiên quyết: "Tớ không thể trả lời câu hỏi này vì nó không phù hợp với môi trường học tập. Chúng mình hãy cùng thảo luận những chủ đề tích cực và lành mạnh nhé! 🐾"
 Ngữ cảnh hiện tại của học sinh: ${context || 'Đang học tập chung'}`;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-      config: {
-        systemInstruction,
-        temperature: 0.7
+  // Helper to call Gemini model with retry on transient 503
+  const callGemini = async (key: string) => {
+    const ai = new GoogleGenAI({
+      apiKey: key,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build'
+        }
       }
     });
 
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.8-flash',
+        contents: prompt,
+        config: {
+          systemInstruction,
+          temperature: 0.7
+        }
+      });
+      return response.text || '';
+    } catch (firstErr: any) {
+      const isTransient = String(firstErr?.message || '').includes('503') || String(firstErr?.message || '').includes('UNAVAILABLE');
+      if (isTransient) {
+        // Wait 700ms and retry once
+        await new Promise(res => setTimeout(res, 700));
+        const retryResponse = await ai.models.generateContent({
+          model: 'gemini-3.8-flash',
+          contents: prompt,
+          config: {
+            systemInstruction,
+            temperature: 0.7
+          }
+        });
+        return retryResponse.text || '';
+      }
+      throw firstErr;
+    }
+  };
+
+  try {
+    const aiText = await callGemini(primaryKey);
     return res.status(200).json({
-      text: response.text || '',
-      source
+      success: true,
+      text: aiText,
+      source: primarySource,
+      model: 'gemini-3.8-flash'
     });
-  } catch (error: any) {
-    return res.status(500).json({
-      error: error?.message || 'Failed to generate response'
+  } catch (primaryErr: any) {
+    const primaryClassified = classifyGeminiError(primaryErr);
+
+    // Check if fallback is allowed:
+    // Fallback is only allowed IF:
+    // 1) The failed key was a personal key (primarySource === 'personal')
+    // 2) User explicitly enabled allowFallback (or mode was auto without strict personal lockdown)
+    // 3) A valid systemKey exists
+    const canAttemptFallback = primarySource === 'personal' && allowFallback && hasSystemKey;
+
+    if (canAttemptFallback) {
+      try {
+        const fallbackText = await callGemini(systemKey);
+        return res.status(200).json({
+          success: true,
+          text: fallbackText,
+          source: 'system',
+          model: 'gemini-3.8-flash',
+          fallbackTriggered: true,
+          fallbackNotice: `Khóa cá nhân gặp lỗi (${primaryClassified.errorCode}). Hệ thống đã tự động dự phòng sang Khóa mặc định Vercel theo cài đặt của bạn.`
+        });
+      } catch (fallbackErr: any) {
+        const fallbackClassified = classifyGeminiError(fallbackErr);
+        return res.status(500).json({
+          success: false,
+          errorCode: 'BOTH_KEYS_FAILED',
+          error: `Cả hai khóa đều không phản hồi: Khóa cá nhân (${primaryClassified.message}) và Khóa hệ thống (${fallbackClassified.message}).`,
+          source: 'both'
+        });
+      }
+    }
+
+    // Do NOT fallback automatically if user didn't allow it. Return clear, distinct error!
+    return res.status(primaryClassified.httpStatus).json({
+      success: false,
+      source: primarySource,
+      errorCode: primaryClassified.errorCode,
+      error: primaryClassified.message,
+      canEnableFallback: !allowFallback && hasSystemKey && primarySource === 'personal'
     });
   }
 }
