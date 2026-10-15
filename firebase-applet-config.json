@@ -1,9 +1,12 @@
 {
+  "projectId": "hocvuicungpet",
+  "appId": "1:1047065244949:web:b6fca3a436387d9d84251c",
   "apiKey": "AIzaSyDDz0MKlGihLeX99RmqKaMczF3L-enkWd4",
   "authDomain": "hocvuicungpet.firebaseapp.com",
-  "projectId": "hocvuicungpet",
+  "firestoreDatabaseId": "ai-studio-vngqucpettrithc-3e26cb40-5357-46eb-9ccc-63bc1e196795",
   "storageBucket": "hocvuicungpet.firebasestorage.app",
   "messagingSenderId": "1047065244949",
-  "appId": "1:1047065244949:web:908ec51176a1629084251c",
-  "measurementId": "G-G1YXSFCT70"
+  "measurementId": "",
+  "oAuthClientId": "1047065244949-t1j1e9n5r65kbigc4qa0fkcvkm7q8968.apps.googleusercontent.com",
+  "recaptchaSiteKey": ""
 }
