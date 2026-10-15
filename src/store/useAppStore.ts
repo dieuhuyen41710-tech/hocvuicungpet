@@ -628,51 +628,76 @@ export const useAppStore = create<AppState>()(
           handleFirestoreError(error, OperationType.DELETE, 'users/students');
         }
       },
-      sendMessage: (msg) =>
+      sendMessage: (msg) => {
+        const newMsg = {
+          ...msg,
+          id: Date.now().toString(),
+          timestamp: new Date().toISOString(),
+          isRead: false,
+          isArchived: false,
+        };
+        setDoc(doc(db, 'messages', newMsg.id), cleanFirestoreData(newMsg)).catch((err) => {
+          console.warn("Could not save message to Firestore:", err);
+        });
         set((state) => ({
-          messages: [
-            {
-              ...msg,
-              id: Date.now().toString(),
-              timestamp: new Date().toISOString(),
-              isRead: false,
-              isArchived: false,
-            },
-            ...state.messages,
-          ],
-        })),
-      archiveMessage: (id) =>
+          messages: [newMsg, ...state.messages],
+        }));
+      },
+      archiveMessage: (id) => {
+        updateDoc(doc(db, 'messages', id), { isArchived: true }).catch((err) => {
+          console.warn("Could not archive message in Firestore:", err);
+        });
         set((state) => ({
           messages: state.messages.map((m) =>
             m.id === id ? { ...m, isArchived: true } : m
           ),
-        })),
-      markMessageRead: (id) =>
+        }));
+      },
+      markMessageRead: (id) => {
+        updateDoc(doc(db, 'messages', id), { isRead: true }).catch((err) => {
+          console.warn("Could not mark message as read in Firestore:", err);
+        });
         set((state) => ({
           messages: state.messages.map((m) =>
             m.id === id ? { ...m, isRead: true } : m
           ),
-        })),
-      addStudentTask: (task) =>
+        }));
+      },
+      addStudentTask: (task) => {
+        const newTask = {
+          ...task,
+          id: Date.now().toString(),
+          status: 'PENDING' as const,
+          createdAt: new Date().toISOString(),
+        };
+        setDoc(doc(db, 'studentTasks', newTask.id), cleanFirestoreData(newTask)).catch((err) => {
+          console.warn("Could not save studentTask to Firestore:", err);
+        });
         set((state) => ({
-          studentTasks: [
-            {
-              ...task,
-              id: Date.now().toString(),
-              status: 'PENDING',
-              createdAt: new Date().toISOString(),
-            },
-            ...state.studentTasks,
-          ],
-        })),
-      rewardStudent: (studentId, points, xp, note) =>
-        set((state) => ({
-          students: state.students.map((s) =>
-            s.id === studentId
-              ? { ...s, points: s.points + points, xp: s.xp + xp }
-              : s
-          ),
-        })),
+          studentTasks: [newTask, ...state.studentTasks],
+        }));
+      },
+      rewardStudent: (studentId, points, xp, note) => {
+        const currentStudent = get().students.find((s) => s.id === studentId);
+        if (currentStudent) {
+          const updatedStudent = {
+            ...currentStudent,
+            points: (currentStudent.points || 0) + points,
+            xp: (currentStudent.xp || 0) + xp,
+          };
+          setDoc(doc(db, 'students', studentId), cleanFirestoreData(updatedStudent), { merge: true }).catch((err) => {
+            console.warn("Could not sync rewardStudent to Firestore:", err);
+          });
+          set((state) => ({
+            students: state.students.map((s) =>
+              s.id === studentId ? updatedStudent : s
+            ),
+            currentUser: state.currentUser?.id === studentId
+              ? { ...state.currentUser, points: (state.currentUser as any).points + points, xp: (state.currentUser as any).xp + xp }
+              : state.currentUser,
+          }));
+        }
+      },
       };
     },
     {

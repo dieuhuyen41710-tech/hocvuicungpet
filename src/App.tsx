@@ -44,11 +44,13 @@ import AdminTests from './pages/Admin/Tests';
 import AdminPets from './pages/Admin/Pets';
 import AdminMailbox from './pages/Admin/Mailbox';
 import AdminSubjects from './pages/Admin/Subjects';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         
@@ -102,6 +104,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
+  </ErrorBoundary>
   );
 }
 

@@ -16,8 +16,8 @@ export default function StudentLayout() {
   const { secondsElapsed } = useTimerStore();
   const navigate = useNavigate();
   const isSleeping = isPetSleeping(
-    settings.petSleepStart,
-    settings.petSleepEnd,
+    settings?.petSleepStart || "21:30",
+    settings?.petSleepEnd || "07:00",
   );
   const student = currentUser as Student;
   const [isAIOpen, setIsAIOpen] = useState(false);
@@ -67,11 +67,11 @@ export default function StudentLayout() {
                   Kinh Nghiệm
                 </span>
                 <span className="text-sm font-black text-[#D97706]">
-                  {student.xp} XP
+                  {student.xp ?? 0} XP
                 </span>
               </div>
               <span className="md:hidden ml-1 font-black text-[#D97706] text-sm">
-                {student.xp}
+                {student.xp ?? 0}
               </span>
             </div>
             <div className="flex items-center bg-[#ECFDF5] px-3 md:px-4 py-1.5 md:py-2 rounded-full border-2 border-[#6EE7B7]">
@@ -81,11 +81,11 @@ export default function StudentLayout() {
                   Điểm Thưởng
                 </span>
                 <span className="text-sm font-black text-[#059669]">
-                  {student.points} Xu
+                  {student.points ?? 0} Xu
                 </span>
               </div>
               <span className="md:hidden ml-1 font-black text-[#059669] text-sm">
-                {student.points}
+                {student.points ?? 0}
               </span>
             </div>
             <div className="flex items-center bg-[#FDF2F8] px-3 md:px-4 py-1.5 md:py-2 rounded-full border-2 border-[#F9A8D4]">
@@ -95,11 +95,11 @@ export default function StudentLayout() {
                   Chuỗi Học
                 </span>
                 <span className="text-sm font-black text-[#DB2777]">
-                  {student.streak} Ngày
+                  {student.streak ?? 0} Ngày
                 </span>
               </div>
               <span className="md:hidden ml-1 font-black text-[#DB2777] text-sm">
-                {student.streak}
+                {student.streak ?? 0}
               </span>
             </div>
           </div>
@@ -122,7 +122,7 @@ export default function StudentLayout() {
               Học sinh
             </p>
             <p className="font-bold text-[#1E40AF]">
-              {student?.fullName.split(" ").pop()}
+              {student?.fullName ? student.fullName.trim().split(" ").pop() : (student?.username || 'Học sinh')}
             </p>
           </div>
           <button

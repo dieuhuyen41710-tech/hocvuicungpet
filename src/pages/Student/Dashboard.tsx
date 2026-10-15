@@ -15,7 +15,7 @@ export default function StudentDashboard() {
 
   const [searchParams] = useSearchParams();
   // State for Pet Selection
-  const [isSelectingPet, setIsSelectingPet] = useState(!currentUser.petId || searchParams.get('new') === 'true');
+  const [isSelectingPet, setIsSelectingPet] = useState(!currentUser?.petId || searchParams.get('new') === 'true');
   const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
   const [petNameInput, setPetNameInput] = useState("");
 
@@ -83,8 +83,8 @@ export default function StudentDashboard() {
     );
   }
 
-  const petInfo = pets.find((p) => p.id === currentUser.petId);
-  const petImageUrl = getPetImage(petInfo, currentUser.petLevel, settings.globalEvolutions);
+  const petInfo = pets.find((p) => p.id === currentUser?.petId);
+  const petImageUrl = getPetImage(petInfo, currentUser?.petLevel || 1, settings?.globalEvolutions);
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 w-full h-full">

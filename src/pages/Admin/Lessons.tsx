@@ -160,8 +160,8 @@ export default function AdminLessons() {
                       "Chưa gán"}
                   </td>
                   <td className="p-4 text-sm font-medium text-gray-600 flex gap-2">
-                    {lesson.videoUrl && <Video size={16} className="text-blue-500" title="Có video" />}
-                    {lesson.gameUrl && <Gamepad2 size={16} className="text-purple-500" title="Có trò chơi" />}
+                    {lesson.videoUrl && <span title="Có video"><Video size={16} className="text-blue-500" /></span>}
+                    {lesson.gameUrl && <span title="Có trò chơi"><Gamepad2 size={16} className="text-purple-500" /></span>}
                     {lesson.questions?.length > 0 && (
                       <span className="flex items-center gap-1 text-orange-500" title="Có câu hỏi">
                         <HelpCircle size={16} /> {lesson.questions.length}

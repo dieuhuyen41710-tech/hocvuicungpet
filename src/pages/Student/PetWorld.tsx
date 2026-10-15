@@ -12,7 +12,7 @@ export default function PetWorld() {
   const resumePet = useAppStore((state) => state.resumePet);
   const navigate = useNavigate();
 
-  const ownedPets = currentUser.ownedPets || [];
+  const ownedPets = currentUser?.ownedPets || [];
 
   const handleResume = (instanceId: string) => {
     resumePet(instanceId);

@@ -15,10 +15,9 @@ export default function PetCare() {
   const miniGames = useAppStore((state) => state.miniGames);
   const playMiniGameReward = useAppStore((state) => state.playMiniGameReward);
   const navigate = useNavigate();
-  const petInfo = pets.find(p => p.id === currentUser.petId);
   const [activeTab, setActiveTab] = useState<'FEED' | 'PLAY'>('FEED');
 
-  if (!currentUser.petId) {
+  if (!currentUser || !currentUser.petId) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
         <div className="text-6xl mb-4">🐾</div>
@@ -28,7 +27,8 @@ export default function PetCare() {
     );
   }
 
-  const petImageUrl = getPetImage(petInfo, currentUser.petLevel, settings.globalEvolutions);
+  const petInfo = pets.find(p => p.id === currentUser.petId);
+  const petImageUrl = getPetImage(petInfo, currentUser.petLevel || 1, settings?.globalEvolutions);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 flex-1 flex flex-col h-full">

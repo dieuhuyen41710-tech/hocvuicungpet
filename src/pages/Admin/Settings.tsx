@@ -184,7 +184,7 @@ export default function AdminSettings() {
                   ...formData,
                   globalEvolutions: [
                     ...currentEvos,
-                    { level: currentEvos.length + 2, name: '' }
+                    { level: currentEvos.length + 2, name: '', imageUrl: '⭐' }
                   ]
                 });
                 setIsSaved(false);

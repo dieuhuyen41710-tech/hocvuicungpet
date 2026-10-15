@@ -18,11 +18,89 @@ export default function Login() {
   const guestLogin = useAppStore(state => state.guestLogin);
   const navigate = useNavigate();
 
+  const [authMode, setAuthMode] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+
+  // Student registration states
+  const [regFullName, setRegFullName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regClass, setRegClass] = useState('6A1');
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!regFullName.trim() || !regEmail.trim() || !regPassword) {
+      setError('Vui lòng điền đầy đủ họ và tên, email/tên đăng nhập và mật khẩu.');
+      return;
+    }
+    if (regPassword.length < 6) {
+      setError('Mật khẩu tối thiểu phải từ 6 ký tự trở lên.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setSuccessMsg('');
+
+    try {
+      const emailFormatted = regEmail.trim().includes('@') ? regEmail.trim() : `${regEmail.trim().toLowerCase()}@school.local`;
+      const usernamePart = regEmail.trim().split('@')[0].toLowerCase();
+
+      const cred = await createUserWithEmailAndPassword(auth, emailFormatted, regPassword);
+      const user = cred.user;
+
+      const newStudent: any = {
+        id: user.uid,
+        fullName: regFullName.trim(),
+        username: usernamePart,
+        email: emailFormatted,
+        role: 'STUDENT',
+        class: regClass,
+        points: 100,
+        xp: 0,
+        streak: 1,
+        petLevel: 1,
+        petHunger: 80,
+        petHappiness: 80,
+        petEnergy: 100,
+        petFeedCount: 0,
+        petCoins: 100,
+        diamonds: 10,
+        ownedPets: [],
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString()
+      };
+
+      await setDoc(doc(db, 'students', user.uid), cleanFirestoreData(newStudent));
+
+      useAppStore.setState((state) => ({
+        currentUser: newStudent,
+        completedLessons: [],
+        students: [...state.students.filter(s => s.id !== newStudent.id), newStudent]
+      }));
+
+      setSuccessMsg('Đăng ký tài khoản người học thành công! Đang chuyển hướng...');
+      setTimeout(() => {
+        navigate('/student');
+      }, 1000);
+    } catch (err: any) {
+      console.error("Register error:", err);
+      if (err.code === 'auth/email-already-in-use') {
+        setError('Tài khoản/email này đã tồn tại trong Firebase Authentication. Vui lòng chuyển sang tab Đăng nhập.');
+      } else if (err.code === 'auth/weak-password') {
+        setError('Mật khẩu quá yếu (tối thiểu 6 ký tự).');
+      } else {
+        setError(err.message || 'Có lỗi xảy ra khi tạo tài khoản học sinh.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Password verification logic that supports assigned passwords, default fallbacks, and standard classroom logins
   const checkPasswordValidity = (inputPassword: string, user: any): boolean => {
@@ -212,17 +290,55 @@ export default function Login() {
             console.warn("Doc lookup note:", fetchErr);
           }
 
-          // If not in firestore, treat as Admin if created via console
+          // If not in firestore, default to STUDENT (người học) role for newly created Authentication accounts
           if (!foundUser) {
-            const usernamePart = authUser.email ? authUser.email.split('@')[0] : 'admin';
-            foundUser = {
-              id: authUser.uid,
-              fullName: authUser.displayName || usernamePart,
-              username: usernamePart,
-              email: authUser.email || targetEmail,
-              role: 'ADMIN',
-              createdAt: new Date().toISOString()
-            };
+            const emailLower = (authUser.email || targetEmail || '').toLowerCase();
+            const isAdmin = emailLower === 'dieuhuyen41710@gmail.com' || emailLower.startsWith('admin@');
+            const isTeacher = emailLower.startsWith('teacher@') || emailLower.startsWith('giaovien@');
+            const usernamePart = authUser.email ? authUser.email.split('@')[0] : 'hocsinh';
+
+            if (isAdmin) {
+              foundUser = {
+                id: authUser.uid,
+                fullName: authUser.displayName || 'Quản trị viên',
+                username: usernamePart,
+                email: authUser.email || targetEmail,
+                role: 'ADMIN',
+                createdAt: new Date().toISOString()
+              };
+            } else if (isTeacher) {
+              foundUser = {
+                id: authUser.uid,
+                fullName: authUser.displayName || 'Giáo viên',
+                username: usernamePart,
+                email: authUser.email || targetEmail,
+                role: 'TEACHER',
+                createdAt: new Date().toISOString()
+              };
+            } else {
+              // Default to STUDENT (người học) role with full standard stats
+              foundUser = {
+                id: authUser.uid,
+                fullName: authUser.displayName || `Học sinh ${usernamePart}`,
+                username: usernamePart,
+                email: authUser.email || targetEmail,
+                role: 'STUDENT',
+                class: '6A1',
+                points: 100,
+                xp: 0,
+                streak: 1,
+                petLevel: 1,
+                petHunger: 80,
+                petHappiness: 80,
+                petEnergy: 100,
+                petFeedCount: 0,
+                petCoins: 100,
+                diamonds: 10,
+                ownedPets: [],
+                createdAt: new Date().toISOString(),
+                lastLogin: new Date().toISOString()
+              };
+            }
           }
         } catch (authErr: any) {
           if (authErr.code === 'auth/invalid-credential' || authErr.code === 'auth/wrong-password') {
@@ -338,8 +454,34 @@ export default function Login() {
           </div>
 
           <div className="bg-[#F8FAFC] p-6 lg:p-8 rounded-[32px] shadow-xl border-4 border-[#DBEAFE] w-full">
-            <h3 className="text-2xl font-black text-[#1E40AF] mb-5 text-center border-b-4 border-[#E0F2FE] pb-3 tracking-wide">
-              ĐĂNG NHẬP HỆ THỐNG
+            {/* Mode Switch Tabs */}
+            <div className="flex bg-[#E0F2FE] p-1.5 rounded-2xl mb-5">
+              <button
+                type="button"
+                onClick={() => { setAuthMode('LOGIN'); setError(''); setSuccessMsg(''); }}
+                className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all uppercase tracking-wider cursor-pointer ${
+                  authMode === 'LOGIN'
+                    ? 'bg-[#3B82F6] text-white shadow-md'
+                    : 'text-[#1E40AF] hover:text-[#1D4ED8]'
+                }`}
+              >
+                Đăng Nhập
+              </button>
+              <button
+                type="button"
+                onClick={() => { setAuthMode('REGISTER'); setError(''); setSuccessMsg(''); }}
+                className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all uppercase tracking-wider cursor-pointer ${
+                  authMode === 'REGISTER'
+                    ? 'bg-[#3B82F6] text-white shadow-md'
+                    : 'text-[#1E40AF] hover:text-[#1D4ED8]'
+                }`}
+              >
+                Đăng Ký Người Học
+              </button>
+            </div>
+
+            <h3 className="text-xl font-black text-[#1E40AF] mb-5 text-center border-b-2 border-[#E0F2FE] pb-2 tracking-wide">
+              {authMode === 'LOGIN' ? 'ĐĂNG NHẬP HỆ THỐNG' : 'ĐĂNG KÝ TÀI KHOẢN NGƯỜI HỌC'}
             </h3>
 
             {error && (
@@ -349,67 +491,171 @@ export default function Login() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
-                  Tên đăng nhập hoặc Email
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                    <User size={18} />
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder="Nhập tên đăng nhập hoặc email..."
-                    className="w-full pl-11 pr-4 py-3.5 rounded-2xl border-2 border-gray-200 bg-white focus:border-[#3B82F6] focus:outline-none font-medium text-gray-800 text-sm shadow-sm transition-all"
-                  />
-                </div>
+            {successMsg && (
+              <div className="mb-5 p-4 bg-green-50 border-2 border-green-200 rounded-2xl flex items-start gap-3 text-green-700 text-sm font-bold shadow-sm">
+                <div className="flex-1 leading-relaxed">{successMsg}</div>
               </div>
+            )}
 
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
-                  Mật khẩu
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                    <Lock size={18} />
+            {authMode === 'LOGIN' ? (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
+                    Tên đăng nhập hoặc Email
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                      <User size={18} />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={identifier}
+                      onChange={(e) => setIdentifier(e.target.value)}
+                      placeholder="Nhập tên đăng nhập hoặc email..."
+                      className="w-full pl-11 pr-4 py-3.5 rounded-2xl border-2 border-gray-200 bg-white focus:border-[#3B82F6] focus:outline-none font-medium text-gray-800 text-sm shadow-sm transition-all"
+                    />
                   </div>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Nhập mật khẩu..."
-                    className="w-full pl-11 pr-12 py-3.5 rounded-2xl border-2 border-gray-200 bg-white focus:border-[#3B82F6] focus:outline-none font-medium text-gray-800 text-sm shadow-sm transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
-                    title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
                 </div>
-              </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full mt-2 py-4 bg-[#3B82F6] text-white font-black rounded-2xl shadow-[0_4px_0_#1D4ED8] hover:bg-[#2563EB] active:translate-y-1 active:shadow-none transition-all uppercase text-sm flex items-center justify-center gap-2 disabled:opacity-50 tracking-wider cursor-pointer"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 size={20} className="animate-spin" /> Đang đăng nhập...
-                  </>
-                ) : (
-                  'Đăng Nhập'
-                )}
-              </button>
-            </form>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
+                    Mật khẩu
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                      <Lock size={18} />
+                    </div>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Nhập mật khẩu..."
+                      className="w-full pl-11 pr-12 py-3.5 rounded-2xl border-2 border-gray-200 bg-white focus:border-[#3B82F6] focus:outline-none font-medium text-gray-800 text-sm shadow-sm transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                      title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full mt-2 py-4 bg-[#3B82F6] text-white font-black rounded-2xl shadow-[0_4px_0_#1D4ED8] hover:bg-[#2563EB] active:translate-y-1 active:shadow-none transition-all uppercase text-sm flex items-center justify-center gap-2 disabled:opacity-50 tracking-wider cursor-pointer"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 size={20} className="animate-spin" /> Đang đăng nhập...
+                    </>
+                  ) : (
+                    'Đăng Nhập'
+                  )}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleRegister} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
+                    Họ và Tên Học Sinh
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                      <User size={18} />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={regFullName}
+                      onChange={(e) => setRegFullName(e.target.value)}
+                      placeholder="Ví dụ: Nguyễn Văn An"
+                      className="w-full pl-11 pr-4 py-3.5 rounded-2xl border-2 border-gray-200 bg-white focus:border-[#3B82F6] focus:outline-none font-medium text-gray-800 text-sm shadow-sm transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
+                    Email hoặc Tên đăng nhập
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                      <User size={18} />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={regEmail}
+                      onChange={(e) => setRegEmail(e.target.value)}
+                      placeholder="Nhập email hoặc tên viết liền không dấu..."
+                      className="w-full pl-11 pr-4 py-3.5 rounded-2xl border-2 border-gray-200 bg-white focus:border-[#3B82F6] focus:outline-none font-medium text-gray-800 text-sm shadow-sm transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
+                      Lớp học
+                    </label>
+                    <select
+                      value={regClass}
+                      onChange={(e) => setRegClass(e.target.value)}
+                      className="w-full py-3.5 px-3 rounded-2xl border-2 border-gray-200 bg-white focus:border-[#3B82F6] focus:outline-none font-bold text-gray-800 text-sm shadow-sm transition-all"
+                    >
+                      <option value="6A1">Lớp 6A1</option>
+                      <option value="6A2">Lớp 6A2</option>
+                      <option value="7A1">Lớp 7A1</option>
+                      <option value="7A2">Lớp 7A2</option>
+                      <option value="8A1">Lớp 8A1</option>
+                      <option value="8A2">Lớp 8A2</option>
+                      <option value="9A1">Lớp 9A1</option>
+                      <option value="9A2">Lớp 9A2</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
+                      Mật khẩu
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={regPassword}
+                        onChange={(e) => setRegPassword(e.target.value)}
+                        placeholder="Từ 6 ký tự..."
+                        className="w-full px-3.5 py-3.5 rounded-2xl border-2 border-gray-200 bg-white focus:border-[#3B82F6] focus:outline-none font-medium text-gray-800 text-sm shadow-sm transition-all"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-gray-500 italic">
+                  * Tài khoản mới đăng ký sẽ tự động được cấp vai trò <strong>Học sinh (Người học)</strong> và đồng bộ trực tiếp lên Firebase Authentication.
+                </p>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full mt-2 py-4 bg-emerald-600 text-white font-black rounded-2xl shadow-[0_4px_0_#059669] hover:bg-emerald-700 active:translate-y-1 active:shadow-none transition-all uppercase text-sm flex items-center justify-center gap-2 disabled:opacity-50 tracking-wider cursor-pointer"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 size={20} className="animate-spin" /> Đang tạo tài khoản...
+                    </>
+                  ) : (
+                    'Đăng Ký Tài Khoản Học Sinh'
+                  )}
+                </button>
+              </form>
+            )}
 
             <div className="mt-6">
               <button

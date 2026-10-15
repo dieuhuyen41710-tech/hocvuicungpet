@@ -19,7 +19,8 @@ export async function initializeFirestoreData(set: any) {
       const settingsRef = doc(db, 'settings', 'config');
       const settingsSnap = await getDoc(settingsRef);
       if (settingsSnap.exists()) {
-        set({ settings: settingsSnap.data() });
+        const firestoreData = settingsSnap.data() || {};
+        set({ settings: { ...mockSettings, ...firestoreData } });
       } else {
         await setDoc(settingsRef, mockSettings);
         set({ settings: mockSettings });
@@ -200,7 +201,42 @@ export async function initializeFirestoreData(set: any) {
       set({ students: mockStudents });
     }
 
+    // 11. Tests
+    try {
+      const testsSnap = await getDocs(collection(db, 'tests'));
+      if (!testsSnap.empty) {
+        const tests = testsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        set({ tests });
+      }
+    } catch (err) {
+      console.warn("Could not sync tests from Firestore:", err);
+    }
+
+    // 12. Messages (Mailbox)
+    try {
+      const messagesSnap = await getDocs(collection(db, 'messages'));
+      if (!messagesSnap.empty) {
+        const messages = messagesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        messages.sort((a: any, b: any) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime());
+        set({ messages });
+      }
+    } catch (err) {
+      console.warn("Could not sync messages from Firestore:", err);
+    }
+
+    // 13. Student Tasks
+    try {
+      const tasksSnap = await getDocs(collection(db, 'studentTasks'));
+      if (!tasksSnap.empty) {
+        const studentTasks = tasksSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        set({ studentTasks });
+      }
+    } catch (err) {
+      console.warn("Could not sync studentTasks from Firestore:", err);
+    }
+
   } catch (error) {
     console.error("Error initializing Firestore data:", error);
   }
 }
+
