@@ -114,17 +114,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).end();
   }
 
-  const systemKey = process.env.GEMINI_API_KEY?.trim() || '';
+  const sanitizeApiKey = (val?: string) => {
+    if (!val) return '';
+    return val.trim().replace(/^["']|["']$/g, '').trim();
+  };
+
+  const detectedEnvVar = process.env.GEMINI_API_KEY ? 'GEMINI_API_KEY'
+    : process.env.GOOGLE_API_KEY ? 'GOOGLE_API_KEY'
+    : process.env.VITE_GEMINI_API_KEY ? 'VITE_GEMINI_API_KEY'
+    : null;
+
+  const systemKey = sanitizeApiKey(
+    process.env.GEMINI_API_KEY || 
+    process.env.GOOGLE_API_KEY || 
+    process.env.VITE_GEMINI_API_KEY
+  );
   const hasSystemKey = systemKey.length > 0;
 
   // Handle GET status check: /api/chat or /api/chat/status
   if (req.method === 'GET') {
+    const maskedKey = hasSystemKey
+      ? `${systemKey.substring(0, 6)}...${systemKey.slice(-4)} (${systemKey.length} ký tự)`
+      : 'Chưa có';
+
     return res.status(200).json({
       hasSystemKey,
+      envVarSource: detectedEnvVar,
+      maskedKeyHint: maskedKey,
       defaultModel: 'gemini-3.8-flash',
       message: hasSystemKey
-        ? 'Đã cấu hình API Key mặc định của hệ thống trên Vercel (GEMINI_API_KEY).'
-        : 'Chưa cấu hình API Key hệ thống trên Vercel. Người dùng có thể sử dụng API Key cá nhân trong cài đặt Chatbot.'
+        ? `Đã nhận diện API Key hệ thống trên Vercel qua biến [${detectedEnvVar}].`
+        : 'Chưa phát hiện biến môi trường GEMINI_API_KEY trên Vercel. Lưu ý: Sau khi thêm biến trong Settings > Environment Variables, bạn bắt buộc phải REDEPLOY dự án để Vercel nạp biến.'
     });
   }
 
@@ -136,7 +156,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const isTest = !!body.isTest || !!req.url?.includes('test-connection');
   const userKeyHeader = (req.headers['x-gemini-api-key'] as string) || '';
   const userKeyBody = (body.apiKey as string) || '';
-  const personalKey = (userKeyHeader || userKeyBody).trim();
+  const personalKey = sanitizeApiKey(userKeyHeader || userKeyBody);
 
   // Mode: 'personal' | 'system' | 'auto' (default 'auto')
   const requestedMode: 'personal' | 'system' | 'auto' = body.mode || 'auto';
@@ -187,16 +207,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       });
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents: 'Ping test connection. Trả lời đúng 1 chữ: OK'
-      });
+      let activeModel = 'gemini-3.8-flash';
+      let response;
+      try {
+        response = await ai.models.generateContent({
+          model: activeModel,
+          contents: 'Ping test connection. Trả lời đúng 1 chữ: OK'
+        });
+      } catch (testErr: any) {
+        if (String(testErr?.message || '').includes('404') || String(testErr?.message || '').toLowerCase().includes('not found')) {
+          activeModel = 'gemini-2.5-flash';
+          response = await ai.models.generateContent({
+            model: activeModel,
+            contents: 'Ping test connection. Trả lời đúng 1 chữ: OK'
+          });
+        } else {
+          throw testErr;
+        }
+      }
 
       return res.status(200).json({
         success: true,
         source: sourceUsed,
-        message: `Kết nối thành công! Gemini 3.8 Flash đã sẵn sàng hoạt động với ${sourceUsed === 'personal' ? 'Khóa cá nhân' : 'Khóa mặc định hệ thống (Vercel)'}.`,
-        model: 'gemini-3.8-flash',
+        message: `Kết nối thành công! Mô hình ${activeModel} đã sẵn sàng hoạt động với ${sourceUsed === 'personal' ? 'Khóa cá nhân' : 'Khóa mặc định hệ thống (Vercel)'}.`,
+        model: activeModel,
         reply: response.text?.trim() || 'OK'
       });
     } catch (err: any) {
@@ -333,6 +367,19 @@ Ngữ cảnh hiện tại của học sinh: ${context || 'Đang học tập chun
       });
       return response.text || '';
     } catch (firstErr: any) {
+      // If 404 / Model not found, fallback to gemini-2.5-flash
+      if (String(firstErr?.message || '').includes('404') || String(firstErr?.message || '').toLowerCase().includes('not found')) {
+        const fallbackModelResponse = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+          config: {
+            systemInstruction,
+            temperature: 0.7
+          }
+        });
+        return fallbackModelResponse.text || '';
+      }
+
       const isTransient = String(firstErr?.message || '').includes('503') || String(firstErr?.message || '').includes('UNAVAILABLE');
       if (isTransient) {
         // Wait 700ms and retry once
