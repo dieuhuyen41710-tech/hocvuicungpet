@@ -108,6 +108,16 @@ export default function AdminLessons() {
     setFormData({ ...formData, questions: newQs });
   };
 
+  const handleInsertLaTeXContent = (latex: string) => {
+    setFormData(prev => ({ ...prev, content: prev.content + latex }));
+  };
+
+  const handleInsertLaTeXQuestion = (index: number, latex: string) => {
+    const newQs = [...formData.questions];
+    newQs[index] = { ...newQs[index], content: (newQs[index].content || '') + latex };
+    setFormData(prev => ({ ...prev, questions: newQs }));
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -323,9 +333,9 @@ export default function AdminLessons() {
                 Nội dung Lý thuyết / Kiến thức trọng tâm
               </label>
               <div className="flex gap-2 text-[10px] bg-gray-100 p-1 rounded-md">
-                <button type="button" onClick={() => setFormData({...formData, content: formData.content + ' \\sqrt{x} '})} className="hover:bg-white px-1">Căn</button>
-                <button type="button" onClick={() => setFormData({...formData, content: formData.content + ' \\pi '})} className="hover:bg-white px-1">Pi</button>
-                <button type="button" onClick={() => setFormData({...formData, content: formData.content + ' x^2 '})} className="hover:bg-white px-1">Lũy thừa</button>
+                <button type="button" onClick={() => handleInsertLaTeXContent(' \\sqrt{x} ')} className="hover:bg-white px-1">Căn</button>
+                <button type="button" onClick={() => handleInsertLaTeXContent(' \\pi ')} className="hover:bg-white px-1">Pi</button>
+                <button type="button" onClick={() => handleInsertLaTeXContent(' x^2 ')} className="hover:bg-white px-1">Lũy thừa</button>
               </div>
             </div>
             <textarea
@@ -362,13 +372,18 @@ export default function AdminLessons() {
                   >
                     <Trash2 size={16} />
                   </button>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-xs font-bold text-gray-500">Nội dung câu hỏi (hỗ trợ LaTeX: \sqrt{x}, \pi, x^2):</span>
+                  <div className="flex justify-between mb-2 items-center">
+                    <span className="text-xs font-bold text-gray-500">Nội dung câu hỏi:</span>
+                    <div className="flex gap-2 text-[10px] bg-gray-100 p-1 rounded-md">
+                      <button type="button" onClick={() => handleInsertLaTeXQuestion(idx, ' \\sqrt{x} ')} className="hover:bg-white px-1">Căn</button>
+                      <button type="button" onClick={() => handleInsertLaTeXQuestion(idx, ' \\pi ')} className="hover:bg-white px-1">Pi</button>
+                      <button type="button" onClick={() => handleInsertLaTeXQuestion(idx, ' x^2 ')} className="hover:bg-white px-1">Lũy thừa</button>
+                    </div>
                   </div>
                   <input
                     required
                     type="text"
-                    placeholder="Nhập nội dung câu hỏi..."
+                    placeholder="Nhập nội dung câu hỏi... (Dùng LaTeX: \sqrt{x}, \pi, x^2)"
                     value={q.content}
                     onChange={(e) => updateQuestion(idx, { content: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-gray-200 mb-3"
