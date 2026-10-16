@@ -5,6 +5,8 @@ import Modal from "../../components/Modal";
 import ConfirmModal from "../../components/ConfirmModal";
 import { Question } from "../../types";
 import CloudinaryUploadButton from "../../components/CloudinaryUploadButton";
+import 'katex/dist/katex.min.css';
+import { InlineMath } from 'react-katex';
 
 export default function AdminLessons() {
   const { lessons, mapNodes, users, addLesson, updateLesson, deleteLesson, currentUser } =
@@ -333,9 +335,15 @@ export default function AdminLessons() {
                 Nội dung Lý thuyết / Kiến thức trọng tâm
               </label>
               <div className="flex gap-2 text-[10px] bg-gray-100 p-1 rounded-md">
-                <button type="button" onClick={() => handleInsertLaTeXContent(' \\sqrt{x} ')} className="hover:bg-white px-1">Căn</button>
-                <button type="button" onClick={() => handleInsertLaTeXContent(' \\pi ')} className="hover:bg-white px-1">Pi</button>
-                <button type="button" onClick={() => handleInsertLaTeXContent(' x^2 ')} className="hover:bg-white px-1">Lũy thừa</button>
+                <button type="button" onClick={() => handleInsertLaTeXContent(' \\sqrt{x} ')} className="hover:bg-white px-1">
+                  <InlineMath>{'\\sqrt{x}'}</InlineMath>
+                </button>
+                <button type="button" onClick={() => handleInsertLaTeXContent(' \\pi ')} className="hover:bg-white px-1">
+                  <InlineMath>{'\\pi'}</InlineMath>
+                </button>
+                <button type="button" onClick={() => handleInsertLaTeXContent(' x^2 ')} className="hover:bg-white px-1">
+                  <InlineMath>{'x^2'}</InlineMath>
+                </button>
               </div>
             </div>
             <textarea
@@ -375,9 +383,15 @@ export default function AdminLessons() {
                   <div className="flex justify-between mb-2 items-center">
                     <span className="text-xs font-bold text-gray-500">Nội dung câu hỏi:</span>
                     <div className="flex gap-2 text-[10px] bg-gray-100 p-1 rounded-md">
-                      <button type="button" onClick={() => handleInsertLaTeXQuestion(idx, ' \\sqrt{x} ')} className="hover:bg-white px-1">Căn</button>
-                      <button type="button" onClick={() => handleInsertLaTeXQuestion(idx, ' \\pi ')} className="hover:bg-white px-1">Pi</button>
-                      <button type="button" onClick={() => handleInsertLaTeXQuestion(idx, ' x^2 ')} className="hover:bg-white px-1">Lũy thừa</button>
+                      <button type="button" onClick={() => handleInsertLaTeXQuestion(idx, ' \\sqrt{x} ')} className="hover:bg-white px-1">
+                        <InlineMath>{'\\sqrt{x}'}</InlineMath>
+                      </button>
+                      <button type="button" onClick={() => handleInsertLaTeXQuestion(idx, ' \\pi ')} className="hover:bg-white px-1">
+                        <InlineMath>{'\\pi'}</InlineMath>
+                      </button>
+                      <button type="button" onClick={() => handleInsertLaTeXQuestion(idx, ' x^2 ')} className="hover:bg-white px-1">
+                        <InlineMath>{'x^2'}</InlineMath>
+                      </button>
                     </div>
                   </div>
                   <input
