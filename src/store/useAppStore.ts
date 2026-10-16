@@ -11,7 +11,8 @@ import {
   StudentTask,
   Space3D,
   MiniGame,
-  PetDiagnosticContext
+  PetDiagnosticContext,
+  Scene3DCommand
 } from "../types";
 import {
   mockUsers,
@@ -48,10 +49,12 @@ interface AppState {
   levelUpInfo: { level: number; petName: string } | null;
   isPetAIOpen: boolean;
   petDiagnosticContext: PetDiagnosticContext | null;
+  active3DCommand: Scene3DCommand | null;
   
   setPetAIOpen: (isOpen: boolean) => void;
   openPetAIDiagnostic: (ctx: PetDiagnosticContext) => void;
   clearPetAIDiagnostic: () => void;
+  setScene3DCommand: (cmd: Scene3DCommand | null) => void;
   addRating: (stars: number, comment?: string) => void;
   clearLevelUpInfo: () => void;
   addSpace3D: (space: Space3D) => void;
@@ -138,9 +141,11 @@ export const useAppStore = create<AppState>()(
       levelUpInfo: null,
       isPetAIOpen: false,
       petDiagnosticContext: null,
+      active3DCommand: null,
       setPetAIOpen: (isOpen: boolean) => set({ isPetAIOpen: isOpen }),
       openPetAIDiagnostic: (ctx: PetDiagnosticContext) => set({ isPetAIOpen: true, petDiagnosticContext: ctx }),
       clearPetAIDiagnostic: () => set({ petDiagnosticContext: null }),
+      setScene3DCommand: (cmd: Scene3DCommand | null) => set({ active3DCommand: cmd }),
       addRating: async (stars, comment) => {
         try {
           const newRating = {

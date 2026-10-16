@@ -107,6 +107,13 @@ export interface Question {
   explanation?: string;
 }
 
+export interface Scene3DCommand {
+  command: 'HIGHLIGHT_FACES' | 'UNFOLD' | 'RESET';
+  shape: 'box' | 'cylinder' | 'sphere' | 'cone';
+  faces?: number[];
+  action?: 'unfold' | 'fold';
+}
+
 export interface PetDiagnosticContext {
   lessonName: string;
   questionContent: string;
