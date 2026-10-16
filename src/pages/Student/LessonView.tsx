@@ -12,6 +12,9 @@ import { getEmbedUrl } from '../../utils/embed';
 import { Question } from '../../types';
 import { mockQuestions } from '../../data/mockData';
 
+import 'katex/dist/katex.min.css';
+import { InlineMath, BlockMath } from 'react-katex';
+
 export default function LessonView() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -261,7 +264,7 @@ export default function LessonView() {
                     Kiến thức trọng tâm: {lesson.name}
                   </h3>
                   <div className="whitespace-pre-wrap text-sm md:text-base font-medium text-gray-700 leading-relaxed pt-2">
-                    {lesson.content}
+                    <BlockMath>{lesson.content || ''}</BlockMath>
                   </div>
                </div>
 
@@ -354,9 +357,9 @@ export default function LessonView() {
                       </div>
 
                       {/* Question Content */}
-                      <p className="text-sm md:text-base font-bold text-gray-800 leading-relaxed">
-                        {q.content}
-                      </p>
+                      <div className="text-sm md:text-base font-bold text-gray-800 leading-relaxed">
+                        <InlineMath>{q.content}</InlineMath>
+                      </div>
 
                       {/* Options List */}
                       <div className="space-y-2 pt-1">

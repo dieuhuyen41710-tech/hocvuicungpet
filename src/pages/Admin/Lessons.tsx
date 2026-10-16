@@ -317,16 +317,23 @@ export default function AdminLessons() {
               className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#F59E0B] focus:outline-none h-16"
             />
           </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">
-              Nội dung Lý thuyết / Kiến thức trọng tâm (Hiển thị ở tab Đọc nội dung cho học sinh)
-            </label>
+           <div>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-bold text-gray-700">
+                Nội dung Lý thuyết / Kiến thức trọng tâm
+              </label>
+              <div className="flex gap-2 text-[10px] bg-gray-100 p-1 rounded-md">
+                <button type="button" onClick={() => setFormData({...formData, content: formData.content + ' \\sqrt{x} '})} className="hover:bg-white px-1">Căn</button>
+                <button type="button" onClick={() => setFormData({...formData, content: formData.content + ' \\pi '})} className="hover:bg-white px-1">Pi</button>
+                <button type="button" onClick={() => setFormData({...formData, content: formData.content + ' x^2 '})} className="hover:bg-white px-1">Lũy thừa</button>
+              </div>
+            </div>
             <textarea
               value={formData.content}
               onChange={(e) =>
                 setFormData({ ...formData, content: e.target.value })
               }
-              placeholder="Nhập nội dung lý thuyết chi tiết, công thức, ví dụ..."
+              placeholder="Nhập nội dung lý thuyết... (Dùng LaTeX: \sqrt{x}, \pi, x^2)"
               className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#F59E0B] focus:outline-none h-36 font-medium text-gray-800"
             />
           </div>
@@ -355,6 +362,9 @@ export default function AdminLessons() {
                   >
                     <Trash2 size={16} />
                   </button>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-xs font-bold text-gray-500">Nội dung câu hỏi (hỗ trợ LaTeX: \sqrt{x}, \pi, x^2):</span>
+                  </div>
                   <input
                     required
                     type="text"

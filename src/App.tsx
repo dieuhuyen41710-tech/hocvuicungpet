@@ -24,6 +24,7 @@ import Mailbox from './pages/Student/Mailbox';
 import Achievements from './pages/Student/Achievements';
 import MiniGame from './pages/Student/MiniGame';
 import ThreeDViewer from './pages/Student/ThreeDViewer';
+import StudentTests from './pages/Student/Tests';
 
 // Teacher Pages
 import TeacherDashboard from './pages/Teacher/Dashboard';
@@ -68,6 +69,7 @@ export default function App() {
             <Route path="achievements" element={<Achievements />} />
             <Route path="minigame" element={<MiniGame />} />
             <Route path="3d-viewer" element={<ThreeDViewer />} />
+            <Route path="tests" element={<StudentTests />} />
             <Route path="profile" element={<div className="p-8 text-center text-gray-500">Hồ sơ - Đang phát triển</div>} />
           </Route>
         </Route>
