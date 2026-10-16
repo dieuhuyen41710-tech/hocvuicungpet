@@ -10,7 +10,8 @@ import {
   Message,
   StudentTask,
   Space3D,
-  MiniGame
+  MiniGame,
+  PetDiagnosticContext
 } from "../types";
 import {
   mockUsers,
@@ -45,7 +46,12 @@ interface AppState {
   miniGames: MiniGame[];
   ratings: { id: string; stars: number; comment?: string; createdAt: string; userName?: string }[];
   levelUpInfo: { level: number; petName: string } | null;
+  isPetAIOpen: boolean;
+  petDiagnosticContext: PetDiagnosticContext | null;
   
+  setPetAIOpen: (isOpen: boolean) => void;
+  openPetAIDiagnostic: (ctx: PetDiagnosticContext) => void;
+  clearPetAIDiagnostic: () => void;
   addRating: (stars: number, comment?: string) => void;
   clearLevelUpInfo: () => void;
   addSpace3D: (space: Space3D) => void;
@@ -130,6 +136,11 @@ export const useAppStore = create<AppState>()(
       miniGames: mockMiniGames,
       ratings: [],
       levelUpInfo: null,
+      isPetAIOpen: false,
+      petDiagnosticContext: null,
+      setPetAIOpen: (isOpen: boolean) => set({ isPetAIOpen: isOpen }),
+      openPetAIDiagnostic: (ctx: PetDiagnosticContext) => set({ isPetAIOpen: true, petDiagnosticContext: ctx }),
+      clearPetAIDiagnostic: () => set({ petDiagnosticContext: null }),
       addRating: async (stars, comment) => {
         try {
           const newRating = {

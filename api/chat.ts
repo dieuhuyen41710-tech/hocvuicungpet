@@ -334,12 +334,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const systemInstruction = `Bạn là một thú cưng ảo (Pet) thông minh, dễ thương, đóng vai trò như một người bạn học tập đồng hành cùng học sinh trong ứng dụng Vương Quốc Pet Tri Thức. 
-Ngôn ngữ: Tiếng Việt. Giọng điệu: Vui vẻ, gần gũi, xưng hô là "tớ" và "cậu".
+Ngôn ngữ: Tiếng Việt. Giọng điệu: Vui vẻ, gần gũi, xưng hô là "tớ" và "cậu" hoặc "bạn nhỏ".
 Nhiệm vụ:
 - Giải đáp các thắc mắc về bài tập, môn học Toán và các kiến thức bổ ích.
 - Đưa ra lời khuyên học tập, động viên học sinh kiên trì rèn luyện.
 - Sử dụng emoji sinh động, thân thiện.
 - Trả lời ngắn gọn, dễ hiểu cho độ tuổi học sinh (Cấp 1, Cấp 2).
+
+CHỨC NĂNG SƯ PHẠM ĐẶC BIỆT - PHÂN TÍCH LỖI SAI BÀI TẬP:
+Khi học sinh hỏi vì sao làm sai bài toán hoặc bấm nút "Hỏi Pet vì sao sai":
+1. BẮT ĐÚNG BỆNH LỖI SAI:
+   - Chỉ ra ngay chỗ nhầm lẫn cụ thể của học sinh:
+     * Nhầm giữa diện tích xung quanh (Sxq = 2(a+b)h) với diện tích toàn phần (Stp) hoặc thể tích (V = a.b.h).
+     * Quên đổi đơn vị đo (ví dụ: mét sang centimét, dm³ sang lít, phút sang giờ).
+     * Nhầm giữa số đối (-x) và số nghịch đảo (1/x).
+     * Nhầm thứ tự thực hiện phép tính hoặc quy tắc dấu âm/dương.
+2. GỢI Ý TỪNG BƯỚC (PHƯƠNG PHÁP SOCRATIC):
+   - Đừng đưa ngay đáp án cuối cùng, hãy gợi ý từng bước (Bước 1: nhớ lại công thức..., Bước 2: kiểm tra đơn vị..., Bước 3: thực hiện tính...).
+3. LUÔN KÈM CÂU HỎI TƯƠNG TỰ ĐỂ THỬ SỨC LẠI:
+   - Ở cuối câu trả lời, hãy tạo 1 câu hỏi tương tự để học sinh làm lại và bọc TRỌN VẸN trong khối mã \`\`\`quiz đúng cú pháp JSON sau:
+   \`\`\`quiz
+   {
+     "question": "Nội dung câu hỏi trắc nghiệm tương tự...",
+     "options": ["A. Lựa chọn 1", "B. Lựa chọn 2", "C. Lựa chọn 3", "D. Lựa chọn 4"],
+     "correctIndex": 0,
+     "explanation": "Giải thích ngắn gọn vì sao đáp án đúng."
+   }
+   \`\`\`
+   (Lưu ý: options gồm 4 phần tử có tiền tố A, B, C, D; correctIndex từ 0 đến 3; không viết thêm chữ gì bên trong khối mã quiz).
 
 QUY ĐỊNH CẢNH BÁO (RẤT QUAN TRỌNG):
 Nếu học sinh gửi từ ngữ tục tĩu, bạo lực, phản cảm hoặc phản động, bạn TUYỆT ĐỐI KHÔNG trả lời theo nội dung đó. Hãy trả lời nhẹ nhàng nhưng kiên quyết: "Tớ không thể trả lời câu hỏi này vì nó không phù hợp với môi trường học tập. Chúng mình hãy cùng thảo luận những chủ đề tích cực và lành mạnh nhé! 🐾"
@@ -380,19 +402,38 @@ Ngữ cảnh hiện tại của học sinh: ${context || 'Đang học tập chun
         return fallbackModelResponse.text || '';
       }
 
-      const isTransient = String(firstErr?.message || '').includes('503') || String(firstErr?.message || '').includes('UNAVAILABLE');
+      const isTransient = String(firstErr?.message || '').includes('503') || 
+                          String(firstErr?.message || '').includes('UNAVAILABLE') ||
+                          String(firstErr?.message || '').toLowerCase().includes('overloaded');
       if (isTransient) {
-        // Wait 700ms and retry once
-        await new Promise(res => setTimeout(res, 700));
-        const retryResponse = await ai.models.generateContent({
-          model: 'gemini-3.8-flash',
-          contents: prompt,
-          config: {
-            systemInstruction,
-            temperature: 0.7
+        // Wait 1000ms and retry once with gemini-3.8-flash
+        try {
+          await new Promise(res => setTimeout(res, 1000));
+          const retryResponse = await ai.models.generateContent({
+            model: 'gemini-3.8-flash',
+            contents: prompt,
+            config: {
+              systemInstruction,
+              temperature: 0.7
+            }
+          });
+          return retryResponse.text || '';
+        } catch (secondErr: any) {
+          // If still busy, fallback to gemini-2.5-flash
+          try {
+            const fallbackModelResponse = await ai.models.generateContent({
+              model: 'gemini-2.5-flash',
+              contents: prompt,
+              config: {
+                systemInstruction,
+                temperature: 0.7
+              }
+            });
+            return fallbackModelResponse.text || '';
+          } catch (thirdErr) {
+            throw secondErr;
           }
-        });
-        return retryResponse.text || '';
+        }
       }
       throw firstErr;
     }

@@ -104,6 +104,18 @@ export interface Question {
   level: 'RECOGNITION' | 'UNDERSTANDING' | 'APPLICATION' | 'HIGH_APPLICATION';
   status: ContentStatus;
   reviewerId?: string;
+  explanation?: string;
+}
+
+export interface PetDiagnosticContext {
+  lessonName: string;
+  questionContent: string;
+  options: string[];
+  selectedOptionIndex: number;
+  selectedOptionText: string;
+  correctOptionIndex?: number;
+  correctOptionText?: string;
+  lessonContent?: string;
 }
 
 export interface Test {

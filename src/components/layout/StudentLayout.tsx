@@ -20,7 +20,8 @@ export default function StudentLayout() {
     settings?.petSleepEnd || "07:00",
   );
   const student = currentUser as Student;
-  const [isAIOpen, setIsAIOpen] = useState(false);
+  const isPetAIOpen = useAppStore((state) => state.isPetAIOpen);
+  const setPetAIOpen = useAppStore((state) => state.setPetAIOpen);
   const [showTimerReminder, setShowTimerReminder] = useState(false);
 
   const handleLogout = () => {
@@ -136,12 +137,12 @@ export default function StudentLayout() {
       </header>
 
       <div className="flex-1 flex relative">
-        <FloatingPet onOpenAI={() => setIsAIOpen(true)} />
+        <FloatingPet onOpenAI={() => setPetAIOpen(true)} />
         <StudyTimer
           forceShow={showTimerReminder}
           onClose={() => setShowTimerReminder(false)}
         />
-        <PetAIAssistant isOpen={isAIOpen} onClose={() => setIsAIOpen(false)} />
+        <PetAIAssistant isOpen={isPetAIOpen} onClose={() => setPetAIOpen(false)} />
 
         <nav className="w-20 md:w-24 bg-white border-r-4 border-[#E0F2FE] hidden md:flex flex-col items-center py-8 gap-6 z-10 sticky top-20 h-[calc(100vh-5rem)]">
           {navItems.map((item) => (
@@ -165,7 +166,7 @@ export default function StudentLayout() {
           <div className="mt-auto flex flex-col gap-4 items-center shrink-0">
             <button
               title="Trợ lí Pet AI"
-              onClick={() => setIsAIOpen(true)}
+              onClick={() => setPetAIOpen(true)}
               className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-[#FEF3C7] text-gray-700 flex items-center justify-center text-2xl md:text-3xl hover:bg-[#FDE68A] transition-colors border-2 border-[#FDE68A] hover:scale-110 shadow-sm"
             >
               🤖
@@ -217,7 +218,7 @@ export default function StudentLayout() {
           ))}
           <button
             title="Trợ lí Pet AI"
-            onClick={() => setIsAIOpen(true)}
+            onClick={() => setPetAIOpen(true)}
             className="flex flex-col items-center justify-center min-w-[56px] w-14 h-14 shrink-0 rounded-2xl transition-all text-2xl opacity-50 hover:opacity-100 hover:bg-[#FEF3C7]"
           >
             🤖

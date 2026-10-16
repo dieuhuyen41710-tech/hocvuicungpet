@@ -1,0 +1,6 @@
+{
+  "summary": "Kế hoạch chi tiết nâng cấp Pet AI thành Trợ lý sư phạm thông minh:\n1. Bổ sung Tab Luyện tập ngay trong chi tiết bài học (LessonView.tsx) với giao diện làm bài tập trắc nghiệm trực quan.\n2. Nút 'Hỏi Pet vì sao sai' ngay sau khi làm sai, mở cửa sổ Pet AI kèm ngữ cảnh bài học, câu hỏi và đáp án đã chọn.\n3. Cơ chế Pet AI sư phạm thông minh: chỉ ra chính xác chỗ nhầm (nhầm diện tích xung quanh với toàn phần, quên đổi đơn vị, nhầm công thức) và gợi ý từng bước tư duy thay vì đưa đáp án.\n4. Tự động sinh câu hỏi tương tự dạng thẻ tương tác có chấm điểm trực tiếp trong Pet AI để học sinh làm lại và làm chủ kiến thức.",
+  "updatedAt": "2026-10-16T07:08:09.256183718Z",
+  "requestFeedback": true,
+  "userFacing": true
+}

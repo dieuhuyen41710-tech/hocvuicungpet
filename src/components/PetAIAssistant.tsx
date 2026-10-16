@@ -5,12 +5,14 @@ import {
   Sparkles, Check, Server, ShieldCheck, RefreshCw, HelpCircle
 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
-import { Student } from '../types';
+import { Student, PetDiagnosticContext } from '../types';
+import InteractiveQuizCard, { QuizData } from './InteractiveQuizCard';
 
 interface Message {
   id: string;
   sender: 'user' | 'ai';
   text: string;
+  quiz?: QuizData | null;
   needsKey?: boolean;
   source?: 'personal' | 'system' | 'both';
   fallbackNotice?: string;
@@ -51,6 +53,73 @@ export default function PetAIAssistant({ isOpen, onClose }: { isOpen: boolean, o
     model?: string;
   } | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const petDiagnosticContext = useAppStore(state => state.petDiagnosticContext);
+  const clearPetAIDiagnostic = useAppStore(state => state.clearPetAIDiagnostic);
+
+  // Helper to extract quiz block from AI response
+  const parseQuizFromText = (text: string): { displayText: string; quiz: QuizData | null } => {
+    if (!text) return { displayText: '', quiz: null };
+
+    const normalizeCorrectIndex = (parsed: any): number => {
+      if (typeof parsed.correctIndex === 'number') return parsed.correctIndex;
+      if (typeof parsed.correctOptionIndex === 'number') return parsed.correctOptionIndex;
+      const ans = parsed.correct_answer || parsed.answer || parsed.correctOption;
+      if (typeof ans === 'string') {
+        const letter = ans.trim().toUpperCase().charAt(0);
+        if (letter === 'A') return 0;
+        if (letter === 'B') return 1;
+        if (letter === 'C') return 2;
+        if (letter === 'D') return 3;
+      }
+      return 0;
+    };
+
+    // 1. Match ```quiz ... ``` or ```json ... ```
+    const codeBlockMatch = text.match(/```(?:quiz|json)?\s*(\{[\s\S]*?"question"[\s\S]*?\})\s*```/i);
+    if (codeBlockMatch) {
+      try {
+        const parsed = JSON.parse(codeBlockMatch[1]);
+        if (parsed.question && Array.isArray(parsed.options) && parsed.options.length > 0) {
+          const displayText = text.replace(codeBlockMatch[0], '').trim();
+          return {
+            displayText,
+            quiz: {
+              question: parsed.question,
+              options: parsed.options,
+              correctIndex: normalizeCorrectIndex(parsed),
+              explanation: parsed.explanation || ''
+            }
+          };
+        }
+      } catch (e) {
+        // Fallback
+      }
+    }
+
+    // 2. Match raw JSON object if model omitted backticks
+    const rawJsonMatch = text.match(/\{[\s\n\r]*"question":[\s\S]*?"options":[\s\S]*?\}/);
+    if (rawJsonMatch) {
+      try {
+        const parsed = JSON.parse(rawJsonMatch[0]);
+        if (parsed.question && Array.isArray(parsed.options) && parsed.options.length > 0) {
+          const displayText = text.replace(rawJsonMatch[0], '').trim();
+          return {
+            displayText,
+            quiz: {
+              question: parsed.question,
+              options: parsed.options,
+              correctIndex: normalizeCorrectIndex(parsed),
+              explanation: parsed.explanation || ''
+            }
+          };
+        }
+      } catch (e) {
+        // Fallback
+      }
+    }
+
+    return { displayText: text, quiz: null };
+  };
 
   // Mask helper for displaying saved personal key securely (e.g. AIzaSy...****abcd)
   const getMaskedKey = (key: string) => {
@@ -58,6 +127,94 @@ export default function PetAIAssistant({ isOpen, onClose }: { isOpen: boolean, o
     if (key.length <= 10) return '********';
     return `${key.slice(0, 6)}...****${key.slice(-4)}`;
   };
+
+  // Diagnostic handler when student clicks "Hỏi Pet vì sao sai"
+  const handleSendDiagnostic = async (ctx: PetDiagnosticContext) => {
+    const diagnosticPrompt = `🐾 Pet ơi, tớ đang làm bài "${ctx.lessonName}" và trả lời câu này nhưng bị chọn nhầm:
+- Đề bài: ${ctx.questionContent}
+- Các phương án trắc nghiệm:
+${ctx.options.map(opt => `  ${opt}`).join('\n')}
+- Phương án tớ đã chọn (BỊ SAI): ${ctx.selectedOptionText}
+${ctx.correctOptionText ? `- Phương án đúng: ${ctx.correctOptionText}` : ''}
+
+Nhờ Pet:
+1. Chỉ ra tớ đã nhầm lẫn ở đâu (ví dụ: nhầm công thức diện tích xung quanh với diện tích toàn phần hoặc thể tích, quên đổi đơn vị đo, nhầm số đối với nghịch đảo, hay sai bước tính nào).
+2. Hướng dẫn từng bước tư duy theo phương pháp gợi mở (Socratic) để tớ tự hiểu bản chất.
+3. Tạo cho tớ một câu hỏi tương tự có 4 đáp án A, B, C, D bọc trong khối \`\`\`quiz JSON để tớ làm lại và kiểm tra kiến thức nhé!`;
+
+    const userBubble: Message = {
+      id: Date.now().toString(),
+      sender: 'user',
+      text: `🐾 Pet ơi, tớ vừa làm câu này trong bài "${ctx.lessonName}" nhưng bị chọn sai: "${ctx.questionContent}". Cậu chỉ ra chỗ tớ nhầm và hướng dẫn tớ với nhé!`
+    };
+
+    setMessages(prev => [...prev, userBubble]);
+    setIsLoading(true);
+
+    try {
+      const activeKey = userApiKey || localStorage.getItem('gemini_custom_api_key') || '';
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-gemini-api-key': activeKey
+        },
+        body: JSON.stringify({
+          prompt: diagnosticPrompt,
+          apiKey: activeKey,
+          mode: keyMode,
+          allowFallback,
+          isDiagnostic: true,
+          context: `Bài học: ${ctx.lessonName}. Học sinh: ${currentUser?.fullName || 'Học sinh'}.`
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        const errorMsg: Message = {
+          id: (Date.now() + 1).toString(),
+          sender: 'ai',
+          text: data.error || 'Đã xảy ra sự cố khi gọi Gemini AI.',
+          needsKey: data.needsConfig || data.errorCode === 'NO_KEY_CONFIGURED' || data.errorCode === 'NO_PERSONAL_KEY' || data.errorCode === 'NO_SYSTEM_KEY',
+          errorCode: data.errorCode,
+          canEnableFallback: data.canEnableFallback
+        };
+        setMessages(prev => [...prev, errorMsg]);
+        return;
+      }
+
+      const { displayText, quiz } = parseQuizFromText(data.text || '');
+      const aiResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        sender: 'ai',
+        text: displayText || data.text || 'Tớ đã phân tích chỗ nhầm lẫn cho cậu rồi nè!',
+        quiz,
+        source: data.source,
+        fallbackNotice: data.fallbackNotice
+      };
+      setMessages(prev => [...prev, aiResponse]);
+    } catch (err: any) {
+      console.error(err);
+      const errorMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        sender: 'ai',
+        text: 'Xin lỗi cậu, tớ đang gặp sự cố kết nối mạng đến máy chủ. Cậu kiểm tra lại kết nối mạng hoặc thử lại sau ít phút nhé!'
+      };
+      setMessages(prev => [...prev, errorMsg]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Watch for diagnostic requests from lesson view
+  useEffect(() => {
+    if (isOpen && petDiagnosticContext) {
+      const ctx = { ...petDiagnosticContext };
+      clearPetAIDiagnostic();
+      setIsSettingsOpen(false);
+      handleSendDiagnostic(ctx);
+    }
+  }, [isOpen, petDiagnosticContext]);
 
   // Load preferences from localStorage and check Vercel system key status
   useEffect(() => {
@@ -266,10 +423,12 @@ export default function PetAIAssistant({ isOpen, onClose }: { isOpen: boolean, o
         return;
       }
       
+      const { displayText, quiz } = parseQuizFromText(data.text || '');
       const aiResponse: Message = { 
         id: (Date.now() + 1).toString(), 
         sender: 'ai', 
-        text: data.text || 'Tớ đã nhận được câu hỏi nhưng chưa có câu trả lời phù hợp 🐾',
+        text: displayText || data.text || 'Tớ đã nhận được câu hỏi nhưng chưa có câu trả lời phù hợp 🐾',
+        quiz,
         source: data.source,
         fallbackNotice: data.fallbackNotice
       };
@@ -667,6 +826,11 @@ export default function PetAIAssistant({ isOpen, onClose }: { isOpen: boolean, o
                       : 'bg-white border-2 border-[#FDE68A] text-gray-800 rounded-tl-none shadow-xs'
                   }`}>
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.text}</p>
+                    
+                    {/* Interactive Quiz Card generated by Pet AI */}
+                    {msg.quiz && (
+                      <InteractiveQuizCard quiz={msg.quiz} />
+                    )}
                     
                     {/* Fallback Notice Badge */}
                     {msg.fallbackNotice && (

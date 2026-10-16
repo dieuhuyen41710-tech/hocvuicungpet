@@ -115,12 +115,14 @@ export default function AdminLessons() {
           <BookOpen size={32} className="text-[#F59E0B]" />
           Quản Lý Bài Học
         </h1>
-        <button
-          onClick={openAdd}
-          className="flex items-center gap-2 bg-[#F59E0B] text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-[#D97706] transition-colors"
-        >
-          <Plus size={20} /> Thêm Bài Học
-        </button>
+        {(currentUser?.role === 'ADMIN' || currentUser?.role === 'TEACHER') && (
+          <button
+            onClick={openAdd}
+            className="flex items-center gap-2 bg-[#F59E0B] text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-[#D97706] transition-colors"
+          >
+            <Plus size={20} /> Thêm Bài Học
+          </button>
+        )}
       </div>
       <div className="bg-white rounded-[24px] shadow-sm border-4 border-[#FDE68A] overflow-hidden">
         <table className="w-full text-left border-collapse">
@@ -169,20 +171,22 @@ export default function AdminLessons() {
                     )}
                   </td>
                   <td className="p-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => openEdit(lesson)}
-                        className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"
-                      >
-                        <Edit3 size={18} />
-                      </button>
-                      <button
-                        onClick={() => setDeleteId(lesson.id)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
+                    {(currentUser?.role === 'ADMIN' || currentUser?.role === 'TEACHER') && (
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => openEdit(lesson)}
+                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"
+                        >
+                          <Edit3 size={18} />
+                        </button>
+                        <button
+                          onClick={() => setDeleteId(lesson.id)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))
