@@ -3,10 +3,18 @@ import { Box, Play, RotateCw, ExternalLink } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 
 export default function ThreeDViewer() {
-  const { spaces3D } = useAppStore();
+  const { spaces3D, active3DCommand, setScene3DCommand } = useAppStore();
   const [activeIndex, setActiveIndex] = useState(0);
   
   const activeSpace = (spaces3D || [])[activeIndex];
+
+  // Auto-close overlay after 5 seconds
+  React.useEffect(() => {
+    if (active3DCommand) {
+      const timer = setTimeout(() => setScene3DCommand(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [active3DCommand, setScene3DCommand]);
 
   return (
     <div className="space-y-4 w-full h-full flex flex-col flex-1">
@@ -42,6 +50,15 @@ export default function ThreeDViewer() {
         </div>
 
         <div className="flex-1 bg-gray-900 rounded-3xl border-4 border-[#3B82F6]/30 overflow-hidden relative flex items-center justify-center group min-h-[400px] shadow-inner w-full">
+          {active3DCommand && (
+            <div className="absolute inset-0 z-30 flex items-center justify-center bg-blue-900/80 p-6 text-center">
+              <div className="bg-white p-6 rounded-3xl max-w-sm shadow-2xl border-4 border-blue-400">
+                <Box size={48} className="text-blue-500 mx-auto mb-4" />
+                <h2 className="text-xl font-black text-blue-900 mb-2">Pet đang minh họa: {active3DCommand.shape}</h2>
+                <p className="text-sm text-blue-700">Lệnh: {active3DCommand.command}. Pet đang tập trung làm nổi bật các thành phần cần thiết cho cậu đó!</p>
+              </div>
+            </div>
+          )}
           {activeSpace ? (
             <>
               <iframe 
