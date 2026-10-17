@@ -268,7 +268,7 @@ export default function LessonView() {
                       part.startsWith('$') && part.endsWith('$') ? (
                         <BlockMath key={i}>{part.slice(1, -1)}</BlockMath>
                       ) : (
-                        <span key={i}>{part}</span>
+                        part
                       )
                     )}
                   </div>
@@ -368,7 +368,7 @@ export default function LessonView() {
                           part.startsWith('$') && part.endsWith('$') ? (
                             <InlineMath key={i}>{part.slice(1, -1)}</InlineMath>
                           ) : (
-                            <span key={i}>{part}</span>
+                            part
                           )
                         )}
                       </div>
