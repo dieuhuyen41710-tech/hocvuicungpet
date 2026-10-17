@@ -31,6 +31,7 @@ import TeacherDashboard from './pages/Teacher/Dashboard';
 import TeacherStudents from './pages/Teacher/Students';
 import TeacherLessons from './pages/Teacher/Lessons';
 import TeacherTests from './pages/Teacher/Tests';
+import StudentAnalytics from './pages/shared/StudentAnalytics';
 import TeacherMailbox from './pages/Teacher/Mailbox';
 
 // Admin Pages
@@ -81,6 +82,7 @@ export default function App() {
             <Route path="students" element={<TeacherStudents />} />
             <Route path="lessons" element={<TeacherLessons />} />
             <Route path="tests" element={<TeacherTests />} />
+            <Route path="analytics" element={<StudentAnalytics />} />
             <Route path="mailbox" element={<TeacherMailbox />} />
           </Route>
         </Route>
@@ -94,6 +96,7 @@ export default function App() {
             <Route path="maps" element={<AdminMaps />} />
             <Route path="lessons" element={<AdminLessons />} />
             <Route path="tests" element={<AdminTests />} />
+            <Route path="analytics" element={<StudentAnalytics />} />
             <Route path="pets" element={<AdminPets />} />
             <Route path="mailbox" element={<AdminMailbox />} />
             <Route path="spaces3d" element={<AdminSpaces3D />} />

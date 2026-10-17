@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router';
-import { Home, Users, BookOpen, FileText, Mail, LogOut, Settings } from 'lucide-react';
+import { Home, Users, BookOpen, FileText, Mail, LogOut, Settings, BarChart2 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import AppTitleLogo from '../AppTitleLogo';
 
@@ -18,6 +18,7 @@ export default function TeacherLayout() {
     { to: '/teacher/students', icon: <Users size={28} />, label: 'Học sinh' },
     { to: '/teacher/lessons', icon: <BookOpen size={28} />, label: 'Bài giảng' },
     { to: '/teacher/tests', icon: <FileText size={28} />, label: 'Đề kiểm tra' },
+    { to: '/teacher/analytics', icon: <BarChart2 size={28} />, label: 'Thống kê' },
     { to: '/teacher/mailbox', icon: <Mail size={28} />, label: 'Hòm thư' },
   ];
 

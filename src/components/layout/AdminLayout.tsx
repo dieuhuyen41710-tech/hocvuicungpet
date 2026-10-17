@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router';
-import { Home, Users, Settings, LogOut, Shield } from 'lucide-react';
+import { Home, Users, Settings, LogOut, Shield, BarChart2 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import AppTitleLogo from '../AppTitleLogo';
 
@@ -20,6 +20,7 @@ export default function AdminLayout() {
     { to: '/admin/maps', icon: <span className="text-2xl font-bold">🗺️</span>, label: 'Bản đồ học tập' },
     { to: '/admin/lessons', icon: <span className="text-2xl font-bold">📚</span>, label: 'Bài học' },
     { to: '/admin/tests', icon: <span className="text-2xl font-bold">📝</span>, label: 'Đề kiểm tra' },
+    { to: '/admin/analytics', icon: <BarChart2 size={28} />, label: 'Thống kê' },
     { to: '/admin/pets', icon: <span className="text-2xl font-bold">🐾</span>, label: 'Thú cưng' },
     { to: '/admin/mailbox', icon: <span className="text-2xl font-bold">✉️</span>, label: 'Hòm thư' },
     { to: '/admin/spaces3d', icon: <span className="text-2xl font-bold">🧊</span>, label: 'Không gian 3D' },
