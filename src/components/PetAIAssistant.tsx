@@ -859,13 +859,16 @@ Nhờ Pet:
                     
                     {/* 3D Visualization Command Handling */}
                     {msg.scene3DCommand && (
-                      <div className="mt-3 p-3 bg-blue-50 border-2 border-blue-200 rounded-2xl flex items-center gap-3">
+                      <div 
+                        className="mt-3 p-3 bg-blue-50 border-2 border-blue-200 rounded-2xl flex items-center gap-3 cursor-pointer hover:bg-blue-100 transition-colors"
+                        onClick={() => setScene3DCommand(msg.scene3DCommand || null)}
+                      >
                         <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center text-white shrink-0">
                           <Eye size={20} />
                         </div>
                         <div>
                           <p className="text-xs font-black text-blue-900">Mô phỏng 3D: {msg.scene3DCommand.shape}</p>
-                          <p className="text-[11px] text-blue-700">Pet đang minh họa trực quan các mặt của hình khối này cho cậu!</p>
+                          <p className="text-[11px] text-blue-700">Bấm để xem lại mô phỏng!</p>
                         </div>
                       </div>
                     )}
