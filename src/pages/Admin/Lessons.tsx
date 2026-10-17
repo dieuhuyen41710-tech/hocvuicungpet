@@ -111,12 +111,12 @@ export default function AdminLessons() {
   };
 
   const handleInsertLaTeXContent = (latex: string) => {
-    setFormData(prev => ({ ...prev, content: prev.content + latex }));
+    setFormData(prev => ({ ...prev, content: prev.content + ` $${latex}$ ` }));
   };
 
   const handleInsertLaTeXQuestion = (index: number, latex: string) => {
     const newQs = [...formData.questions];
-    newQs[index] = { ...newQs[index], content: (newQs[index].content || '') + latex };
+    newQs[index] = { ...newQs[index], content: (newQs[index].content || '') + ` $${latex}$ ` };
     setFormData(prev => ({ ...prev, questions: newQs }));
   };
 

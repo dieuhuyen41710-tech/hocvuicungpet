@@ -264,7 +264,13 @@ export default function LessonView() {
                     Kiến thức trọng tâm: {lesson.name}
                   </h3>
                   <div className="whitespace-pre-wrap text-sm md:text-base font-medium text-gray-700 leading-relaxed pt-2">
-                    <BlockMath>{lesson.content || ''}</BlockMath>
+                    {lesson.content?.split(/(\$.*?\$)/g).map((part, i) => 
+                      part.startsWith('$') && part.endsWith('$') ? (
+                        <BlockMath key={i}>{part.slice(1, -1)}</BlockMath>
+                      ) : (
+                        <span key={i}>{part}</span>
+                      )
+                    )}
                   </div>
                </div>
 
@@ -358,7 +364,13 @@ export default function LessonView() {
 
                       {/* Question Content */}
                       <div className="text-sm md:text-base font-bold text-gray-800 leading-relaxed">
-                        <InlineMath>{q.content}</InlineMath>
+                        {q.content.split(/(\$.*?\$)/g).map((part, i) => 
+                          part.startsWith('$') && part.endsWith('$') ? (
+                            <InlineMath key={i}>{part.slice(1, -1)}</InlineMath>
+                          ) : (
+                            <span key={i}>{part}</span>
+                          )
+                        )}
                       </div>
 
                       {/* Options List */}
