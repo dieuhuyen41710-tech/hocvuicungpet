@@ -8,6 +8,7 @@ import { Student } from "../../types";
 import FloatingPet from "../FloatingPet";
 import StudyTimer from "../StudyTimer";
 import PetAIAssistant from "../PetAIAssistant";
+import ThreeDSimulationModal from "../ThreeDSimulationModal";
 import LevelUpModal from "../LevelUpModal";
 import AppTitleLogo from "../AppTitleLogo";
 
@@ -143,6 +144,7 @@ export default function StudentLayout() {
           onClose={() => setShowTimerReminder(false)}
         />
         <PetAIAssistant isOpen={isPetAIOpen} onClose={() => setPetAIOpen(false)} />
+        <ThreeDSimulationModal />
 
         <nav className="w-20 md:w-24 bg-white border-r-4 border-[#E0F2FE] hidden md:flex flex-col items-center py-8 gap-6 z-10 sticky top-20 h-[calc(100vh-5rem)]">
           {navItems.map((item) => (

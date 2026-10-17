@@ -43,6 +43,7 @@ export interface Student extends User {
   petFeedCount?: number;
   lastLogin: string;
   ownedPets?: StudentPet[];
+  completedLessons?: string[];
 }
 
 export type ContentStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'PUBLISHED';
