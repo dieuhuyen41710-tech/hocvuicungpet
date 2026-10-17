@@ -49,7 +49,7 @@ export default function ThreeDViewer() {
           )}
         </div>
 
-        <div className="flex-1 bg-gray-900 rounded-3xl border-4 border-[#3B82F6]/30 overflow-hidden relative flex items-center justify-center group min-h-[400px] shadow-inner w-full">
+        <div className="flex-1 bg-gray-900 rounded-3xl border-4 border-[#3B82F6]/30 overflow-hidden relative flex items-center justify-center group min-h-[600px] shadow-inner w-full">
           {active3DCommand && (
             <div className="absolute inset-0 z-30 flex items-center justify-center bg-blue-900/80 p-6 text-center">
               <div className="bg-white p-6 rounded-3xl max-w-sm shadow-2xl border-4 border-blue-400">
@@ -61,22 +61,22 @@ export default function ThreeDViewer() {
           )}
           {activeSpace ? (
             <>
-              <iframe 
-                src={activeSpace.url} 
+               <iframe 
+                src={`${activeSpace.url}${activeSpace.url.includes('?') ? '&' : '?'}embed=true&toolbar=0`} 
                 className="w-full h-full absolute inset-0 border-0" 
                 title={activeSpace.title}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
               ></iframe>
               {/* Overlay hiển thị nút bấm nổi bật khi nhúng bị chặn */}
-              <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-20 opacity-0 hover:opacity-100 transition-opacity">
+              <div className="absolute top-4 right-4 z-20">
                 <a 
                   href={activeSpace.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-[#3B82F6] text-white px-8 py-4 rounded-full flex items-center gap-3 text-lg font-black hover:bg-[#2563EB] transition-all shadow-xl scale-110"
+                  className="bg-white/90 text-[#3B82F6] px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-black hover:bg-white transition-all shadow-lg border-2 border-[#3B82F6]"
                 >
-                  Mở mô hình 3D toàn màn hình <ExternalLink size={20} />
+                  <ExternalLink size={16} /> Mở tab mới
                 </a>
               </div>
             </>
