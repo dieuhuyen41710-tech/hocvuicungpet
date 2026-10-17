@@ -1,48 +1,23 @@
 import React from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { X, Box } from 'lucide-react';
+import ThreeDModelViewer from './ThreeDModelViewer';
 
 export default function ThreeDSimulationModal() {
   const { active3DCommand, setScene3DCommand } = useAppStore();
 
   if (!active3DCommand) return null;
 
-  const renderHighlight = (shape: string) => (
-    <svg viewBox="0 0 200 200" className="w-48 h-48 mx-auto mb-4">
-      <rect x="50" y="50" width="100" height="100" fill="#BFDBFE" stroke="#3B82F6" strokeWidth="4" />
-      <rect x="50" y="50" width="100" height="100" fill="transparent" stroke="#2563EB" strokeWidth="6" strokeDasharray="5,5" />
-      <text x="100" y="110" textAnchor="middle" className="text-xl font-black fill-blue-700">Mặt bên</text>
-    </svg>
-  );
-
-  const renderUnfold = (shape: string) => (
-    <svg viewBox="0 0 300 200" className="w-64 h-48 mx-auto mb-4">
-      <rect x="100" y="50" width="100" height="100" fill="#FDE68A" stroke="#D97706" strokeWidth="4" />
-      <rect x="0" y="50" width="100" height="100" fill="#FDE68A" stroke="#D97706" strokeWidth="4" />
-      <rect x="200" y="50" width="100" height="100" fill="#FDE68A" stroke="#D97706" strokeWidth="4" />
-      <text x="150" y="110" textAnchor="middle" className="text-xl font-black fill-amber-800">Trải phẳng</text>
-    </svg>
-  );
-
   const getVisualizationContent = () => {
-    switch (active3DCommand.command) {
-      case 'HIGHLIGHT_FACES':
-        return (
-          <div className="text-center">
-            {renderHighlight(active3DCommand.shape)}
-            <p className="font-bold text-gray-800">Pet đang làm nổi bật các mặt của {active3DCommand.shape}</p>
-          </div>
-        );
-      case 'UNFOLD':
-        return (
-          <div className="text-center">
-            {renderUnfold(active3DCommand.shape)}
-            <p className="font-bold text-gray-800">Pet đang trải phẳng {active3DCommand.shape} để cậu dễ tính diện tích!</p>
-          </div>
-        );
-      default:
-        return <p className="text-center p-8">Đang tải mô phỏng...</p>;
-    }
+    return (
+      <div className="text-center">
+        <ThreeDModelViewer shape={active3DCommand.shape} />
+        <p className="font-bold text-gray-800 mt-4">
+          Pet đang minh họa {active3DCommand.shape}. 
+          {active3DCommand.command === 'HIGHLIGHT_FACES' ? ' Cậu có thể xoay và phóng to để quan sát các mặt nhé!' : ' Cậu có thể xoay để nhìn rõ cấu trúc!'}
+        </p>
+      </div>
+    );
   };
 
   return (
