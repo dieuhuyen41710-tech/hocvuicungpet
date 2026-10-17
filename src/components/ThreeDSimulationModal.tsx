@@ -1,35 +1,47 @@
 import React from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { Box, X, Maximize2 } from 'lucide-react';
+import { X, Box } from 'lucide-react';
 
 export default function ThreeDSimulationModal() {
   const { active3DCommand, setScene3DCommand } = useAppStore();
 
   if (!active3DCommand) return null;
 
-  // Placeholder for 3D visualization assets
+  const renderHighlight = (shape: string) => (
+    <svg viewBox="0 0 200 200" className="w-48 h-48 mx-auto mb-4">
+      <rect x="50" y="50" width="100" height="100" fill="#BFDBFE" stroke="#3B82F6" strokeWidth="4" />
+      <rect x="50" y="50" width="100" height="100" fill="transparent" stroke="#2563EB" strokeWidth="6" strokeDasharray="5,5" />
+      <text x="100" y="110" textAnchor="middle" className="text-xl font-black fill-blue-700">Mặt bên</text>
+    </svg>
+  );
+
+  const renderUnfold = (shape: string) => (
+    <svg viewBox="0 0 300 200" className="w-64 h-48 mx-auto mb-4">
+      <rect x="100" y="50" width="100" height="100" fill="#FDE68A" stroke="#D97706" strokeWidth="4" />
+      <rect x="0" y="50" width="100" height="100" fill="#FDE68A" stroke="#D97706" strokeWidth="4" />
+      <rect x="200" y="50" width="100" height="100" fill="#FDE68A" stroke="#D97706" strokeWidth="4" />
+      <text x="150" y="110" textAnchor="middle" className="text-xl font-black fill-amber-800">Trải phẳng</text>
+    </svg>
+  );
+
   const getVisualizationContent = () => {
     switch (active3DCommand.command) {
       case 'HIGHLIGHT_FACES':
         return (
           <div className="text-center">
-            <div className="w-48 h-48 mx-auto bg-blue-100 rounded-2xl flex items-center justify-center border-4 border-blue-300 mb-4">
-              <Box size={96} className="text-blue-500" />
-            </div>
-            <p className="font-bold text-gray-800">Minh họa các mặt của {active3DCommand.shape}</p>
+            {renderHighlight(active3DCommand.shape)}
+            <p className="font-bold text-gray-800">Pet đang làm nổi bật các mặt của {active3DCommand.shape}</p>
           </div>
         );
       case 'UNFOLD':
         return (
           <div className="text-center">
-            <div className="w-64 h-48 mx-auto bg-amber-100 rounded-2xl flex items-center justify-center border-4 border-amber-300 mb-4">
-              <span className="text-4xl font-black text-amber-700">Trải phẳng</span>
-            </div>
-            <p className="font-bold text-gray-800">Minh họa trải phẳng {active3DCommand.shape}</p>
+            {renderUnfold(active3DCommand.shape)}
+            <p className="font-bold text-gray-800">Pet đang trải phẳng {active3DCommand.shape} để cậu dễ tính diện tích!</p>
           </div>
         );
       default:
-        return <p>Đang tải mô phỏng...</p>;
+        return <p className="text-center p-8">Đang tải mô phỏng...</p>;
     }
   };
 
